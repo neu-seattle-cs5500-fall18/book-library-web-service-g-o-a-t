@@ -9,10 +9,10 @@ api = Api(app)
 @app.route('/Book')
 class Library(object):
     def __init__(self, Library_Id, Books, Checkouts):
-        Library.Library_Id = Library_Id
-        Library.Books = Books
-        Library.Checkouts = Checkouts
-        Library.deleted = False
+        self.Library_Id = Library_Id
+        self.Books = Books
+        self.Checkouts = Checkouts
+        self.deleted = False
 
     def in_library(self, book):
         for x in self.Books:
