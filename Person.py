@@ -12,4 +12,6 @@ class Person:
         Person.name = name
         Person.ID = ID
         Person.comments = comments
+        Person.deleted = False
+
 
