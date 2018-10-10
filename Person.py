@@ -8,7 +8,7 @@ api = Api(app)
 
 @app.route('/Person')
 class Person:
-    def __init__(person, name, ID, comments):
+    def __init__(self, name, ID, comments):
         Person.name = name
         Person.ID = ID
         Person.comments = comments

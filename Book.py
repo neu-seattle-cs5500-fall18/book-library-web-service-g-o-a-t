@@ -8,7 +8,7 @@ api = Api(app)
 
 @app.route('/Book')
 class Book:
-    def __init__(title, name, ID):
-    	Book.title = title
+    def __init__(self, title, name, ID):
+        Book.title = title
         Book.name = name
         Book.ID = ID

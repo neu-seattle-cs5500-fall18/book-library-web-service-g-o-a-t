@@ -8,7 +8,7 @@ api = Api(app)
 
 @app.route('/Book')
 class Library(object):
-    def __init__(Library_Id, Books):
+    def __init__(self, Library_Id, Books):
         Library.Library_Id = Library_Id
         Library.Books = Books
 
