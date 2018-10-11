@@ -8,10 +8,10 @@ api = Api(app)
 
 @app.route('/Checkout')
 class Checkout:
-    def __init__(self, ID, book, person, comments, checkout_length):
+    def __init__(self, ID, book, author, comments, checkout_length):
         self.ID = ID
         self.book = book
-        self.person = person
+        self.person = author
         self.comments = comments
         self.start_date = date.today()
         self.due_date = self.start_date + timedelta(days=checkout_length)
