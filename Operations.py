@@ -41,5 +41,5 @@ class Book_operation(Resource):
 				return {'result' : 'book has been deleted'}, 204
 		return {'cannot find this book': 'nothing is deleted'}, 404
 
-if __name__ == '__main__':
-    app.run(debug=True)
+#if __name__ == '__main__':
+ #   app.run(debug=True)
