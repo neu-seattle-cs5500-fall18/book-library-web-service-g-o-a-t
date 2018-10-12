@@ -2,13 +2,8 @@
 from flask import Flask
 from flask_restplus import Api, Resource
 from Operations import app
-
 #app = Flask(__name__)
 #api = Api(app)
-
-
-#app = Flask(__name__)
-
 
 #@app.route('/')
 #def hello_world():

@@ -16,7 +16,7 @@ sample_library = [book1.title, book2.title]
 #define book model
 book_model = api.model("book", {"name": fields.String("Name of the book.")})
 
-checkout = []
+checkout = [book1, book2]
 
 @api.route('/book')
 class Book_operation(Resource):
