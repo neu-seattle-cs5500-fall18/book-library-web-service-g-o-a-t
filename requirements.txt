@@ -1,3 +1,4 @@
 
 Flask==1.0.2
+flask_restplus==0.12.01
 gunicorn==19.9.0
