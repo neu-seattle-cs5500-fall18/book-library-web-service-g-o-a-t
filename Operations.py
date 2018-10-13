@@ -11,27 +11,31 @@ book1 = Book.Book(1, "Hunger Game", "Jennifer", "action", 2012, "Nov")
 book2 = Book.Book(2, "Harry Potter", "JK", "Fiction", 2000, "Dec")
 
 # This is just a sample list to test out functionality
-sample_library = [book1.title, book2.title]
+#sample_library = [book1.title, book2.title]
+
+#temporary book database
+books = []
+books.append(book1)
+books.append(book2)
 
 #define book model
-book_model = api.model("book", {"name": fields.String("Name of the book.")})
+book_model = api.model("book", {"Title": fields.String("Name of the book.")})
 
 checkout = [book1, book2]
+
+
 
 @api.route('/book')
 class Book_operation(Resource):
 	def get(self):
-		return checkout
+		return books
 
-	@api.expect(book_model)
+	@api.expect(book_model) #decorator (expect that takes in a book_model)
 	def post(self):
-		new_book = api.payload
-		if new_book['name'] in sample_library:
-			checkout.append(new_book)
-			return {'result' : 'book has been added'}, 201
-		else:
-			return {'cannot find this book' : 'nothing is added'}, 404
-	
+		new_book = api.payload  #the payload (json object) received from the client
+		books.append(new_book)
+		return {'result': 'Book added successfully'}, 201
+
 	@api.expect(book_model)
 	def delete(self):
 		new_book = api.payload
