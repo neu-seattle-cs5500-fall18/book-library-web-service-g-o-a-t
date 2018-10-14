@@ -1,22 +1,17 @@
-
 from flask import Flask
 from flask_restplus import Api, Resource, fields
+from Serializers import book_model
 
 app = Flask(__name__)
 api = Api(app)
 
+ns = api.namespace('books', description='Operations related to individual books')
+
 # define book model
-book_model = api.model('Book', {
-    'Title': fields.String(description='Book title'),
-    'Author': fields.String(description='Book author'),
-    'ID': fields.Integer(min=1),
-    'Genre': fields.String(description='Book genre'),
-    'Year_released': fields.Integer(min=0),
-    'Checked_out': fields.boolean(False),
-})
+
+books = []
 
 
-#@app.route('/Book')
 class Book:
     def __init__(self, ID, title, author, genre, year_released, checked_out):
         self.title = title
@@ -27,19 +22,30 @@ class Book:
         self.checked_out = checked_out
         self.deleted = False
 
+    @ns.route('/')
+    class BookCollection(Resource):
+        # TO-DO: add marshalling to get only specific fields
+        def get(self):
+            return books, 201
+
     @api.route('/book/<int:id>')
     class Book_operation(Resource):
-        def get(self,id):
-            return Book
+        def get(self, id):
+            '''
 
+            Returns list of books.
+
+            '''
+            # TO-DO: add get method, using query from db
+            return books, 201
+
+        @api.make_response(201, 'Book successfully created.')
         @api.expect(book_model)  # decorator (expect that takes in a book_model)
-        def post(self,id):
-            #update book
-            new_book = api.payload  # the payload (json object) received from the client
-            return {'result': 'Book updated successfully'}, 201
+        def post(self):
+            # Creates a new book
+            return None, 201
 
         @api.expect(book_model)
-        def delete(self,id):
+        def delete(self, id):
             # Deletes book
             return {'result': 'Book deleted successfully'}, 204
-

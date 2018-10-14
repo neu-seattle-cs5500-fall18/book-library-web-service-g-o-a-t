@@ -9,4 +9,4 @@ from Operations import app
 #def hello_world():
 #    return 'We are Team Goat'
 if __name__ == '__main__':
-    app.run(debug = True)
+    app.run(debug = True)  #starting a development server
