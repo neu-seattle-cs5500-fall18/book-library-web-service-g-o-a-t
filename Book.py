@@ -5,9 +5,8 @@ from Serializers import book_model
 app = Flask(__name__)
 api = Api(app)
 
-ns = api.namespace('books', description='Operations related to individual books')
+ns = api.namespace('Collections', description='Operations related to books')
 
-# define book model
 
 books = []
 
@@ -23,13 +22,19 @@ class Book:
         self.deleted = False
 
     @ns.route('/')
-    class BookCollection(Resource):
+    class book_collection(Resource):
         # TO-DO: add marshalling to get only specific fields
+
         def get(self):
+            '''
+            Return a list of books
+            '''
+
+            # TO-DO: create querying for list of books using db
             return books, 201
 
     @api.route('/book/<int:id>')
-    class Book_operation(Resource):
+    class book_operations(Resource):
         def get(self, id):
             '''
 
@@ -39,13 +44,22 @@ class Book:
             # TO-DO: add get method, using query from db
             return books, 201
 
-        @api.make_response(201, 'Book successfully created.')
-        @api.expect(book_model)  # decorator (expect that takes in a book_model)
-        def post(self):
-            # Creates a new book
-            return None, 201
-
+        @api.make_response(204, 'Book succesfully created.')
         @api.expect(book_model)
+        def put(self, id):
+            '''
+
+            Creates a new book.
+
+            '''
+            return books, 204
+
+        @api.response(204, 'Book successfully deleted.')
         def delete(self, id):
-            # Deletes book
-            return {'result': 'Book deleted successfully'}, 204
+            '''
+
+            Deletes a book.
+
+            '''
+            # TO-DO: create delete_book method
+            return None, 204

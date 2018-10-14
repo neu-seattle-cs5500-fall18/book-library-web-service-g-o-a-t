@@ -1,7 +1,7 @@
 from flask_restplus import fields
 from flask_restplus import api
 
-user = api.model('User', {
+user_model = api.model('User', {
     'id': fields.Integer(readOnly=True, description= 'The unique identifier of a user'),
     'Name': fields.String(required=True, description = 'The name of a user')
 })

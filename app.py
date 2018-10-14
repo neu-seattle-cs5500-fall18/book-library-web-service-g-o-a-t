@@ -1,9 +1,8 @@
 
-from flask import Flask
+from flask import Flask, app
 from flask_restplus import Api, Resource
-from Operations import app
 #app = Flask(__name__)
-#api = Api(app)
+api = Api(app)
 
 #@app.route('/')
 #def hello_world():

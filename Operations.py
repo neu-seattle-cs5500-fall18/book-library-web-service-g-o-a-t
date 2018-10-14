@@ -1,7 +1,6 @@
 from flask import Flask, Blueprint
 from flask_restplus import Api, Resource, fields
-import Book
-from Book import app
+
 
 app = Flask(__name__)
 api = Api(app)  # doc=False
