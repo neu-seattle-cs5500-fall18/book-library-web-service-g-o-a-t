@@ -1,12 +1,14 @@
 from flask import Flask
 from flask_restplus import Api
+from Book import app
+
 
 api = Api(
     title = 'G.O.A.T  API',
     version = '1.0',
     description = 'A book API powered by Flask RestPlus'
 )
-app = Flask(__name__)
+#app = Flask(__name__)
 
 
 #@app.route('/')
