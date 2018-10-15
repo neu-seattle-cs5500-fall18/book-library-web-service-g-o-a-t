@@ -1,4 +1,4 @@
-from flask_restplus import fields
+from flask_restplus import fields, Resource
 from flask_restplus import api
 
 user_model = api.model('User', {
@@ -6,7 +6,7 @@ user_model = api.model('User', {
     'Name': fields.String(required=True, description = 'The name of a user')
 })
 
-
+api.model
 book_model = api.model('Book', {
     'Title': fields.String(description='Book title'),
     'Author': fields.String(description='Book author'),

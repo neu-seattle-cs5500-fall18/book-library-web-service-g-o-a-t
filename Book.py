@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_restplus import Api, Resource, fields
+from flask_restplus import Api, Resource
 from Serializers import book_model
 
 app = Flask(__name__)

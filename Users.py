@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_restplus import Api, Resource, fields
 from Serializers import user_model
+
 app = Flask(__name__)
 api = Api(app)
 

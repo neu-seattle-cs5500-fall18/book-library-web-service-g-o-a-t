@@ -1,8 +1,13 @@
+from flask import Flask
+from flask_restplus import Api
 
-from flask import Flask, app
-from flask_restplus import Api, Resource
-#app = Flask(__name__)
-api = Api(app)
+api = Api(
+    title = 'G.O.A.T  API',
+    version = '1.0',
+    description = 'A book API powered by Flask RestPlus'
+)
+app = Flask(__name__)
+
 
 #@app.route('/')
 #def hello_world():
