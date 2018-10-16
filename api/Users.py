@@ -1,13 +1,12 @@
-from flask import Flask
-from flask_restplus import Api, Resource, fields
-from Serializers import user_model
-
-app = Flask(__name__)
-api = Api(app)
-
-ns = api.namespace('Collections', description='Operations related to users')
+from flask_restplus import Resource, Namespace, fields
 
 
+ns = Namespace('Collections', description='Operations related to users')
+
+user_model = ns.model('User', {
+    'id': fields.Integer(readOnly=True, description= 'The unique identifier of a user'),
+    'Name': fields.String(required=True, description = 'The name of a user')
+})
 class Person:
     def __init__(self, name, ID, comments):
         self.name = name
@@ -43,7 +42,7 @@ class UserOperations(Resource):
         # TO-DO: add get method, using query from db
         return users, 201
 
-    @ns.make_response(204, 'User successfully created.')
+    #@ns.make_response(204, 'User successfully created.')
     @ns.expect(user_model)
     def put(self, id):
         '''
