@@ -5,8 +5,6 @@ app = Flask(__name__)
 
 api = Api(app)
 
-ns = Namespace("TODO")
-
 
 @app.route('/Book')
 class Library(object):

@@ -1,10 +1,22 @@
 from flask_restplus import Resource, Namespace, fields
 
 
-ns = Namespace('BookList', description='Operations related to books')
+api = Namespace('Books', description='Operations related to books')
 
 books = []
-book_model = ns.model("Book", {
+
+
+class Book:
+    def __init__(self, Title, Author, ID, Genre, Year_released, Checked_out):
+        self.Title = Title
+        self.Author = Author
+        self.ID = ID
+        self.Genre = Genre
+        self.Year_released = Year_released
+        self.Checked_out = Checked_out
+
+
+book_model = api.model("Book", {
     'Title': fields.String(description='Book title'),
     'Author': fields.String(description='Book author'),
     'ID': fields.Integer(min=1),
@@ -13,25 +25,33 @@ book_model = ns.model("Book", {
     'Checked_out': fields.boolean(False),
 })
 
-
-
-@ns.route('/')
+@api.route('/')
 class ListBookOperations(Resource):
     def get(self, id):
         '''
         Returns list of books.
         '''
-        # TO-DO: add get method, using query from db
+        #TODO: add get method, using query from db
         return books, 201
 
+@api.route('/genre/<string:genre>')
+@api.doc(params={'genre': 'The genre for a list of books'})
+class GenreBookOperations(Resource):
+    def get(self, genre):
+        '''
 
-@ns.route('/book/<int:id>')
+        Returns a list of books from the specific genre
+        '''
+
+
+@api.route('/book/<int:id>')
+@api.doc(params={'id': 'An ID for a book'})
 class BookOperations(Resource):
     def get(self, id):
         '''
         Returns a specific book.
         '''
-        # TO-DO: add get method, using query from db
+        #TODO: add get method, using query from db
         return books, 201
 
     # @api.make_response(204, 'Book succesfully created.')
@@ -48,6 +68,6 @@ class BookOperations(Resource):
         '''
         Deletes a book.
         '''
-        # TO-DO: create delete_book method
+        #TODO: create delete_book method
         return None, 204
 

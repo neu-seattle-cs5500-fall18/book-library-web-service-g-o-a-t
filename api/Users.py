@@ -1,9 +1,9 @@
 from flask_restplus import Resource, Namespace, fields
 
 
-ns = Namespace('UserList', description='Operations related to users')
+api = Namespace('Users', description='Operations related to users')
 
-user_model = ns.model('User', {
+user_model = api.model('User', {
     'id': fields.Integer(readOnly=True, description= 'The unique identifier of a user'),
     'Name': fields.String(required=True, description = 'The name of a user')
 })
@@ -18,7 +18,7 @@ class User:
 users = []
 
 
-@ns.route('/')
+@api.route('/')
 class UserCollection(Resource):
     # TO-DO: add marshalling to get only specific fields
     def get(self):
@@ -30,7 +30,8 @@ class UserCollection(Resource):
         return users, 201
 
 
-@ns.route('/user/<int:id>')
+@api.route('/user/<int:id>')
+@api.doc(params={'id': 'An ID for a user'})
 class UserOperations(Resource):
     def get(self, id):
         """
@@ -38,11 +39,11 @@ class UserOperations(Resource):
             Returns a specific user.
 
             """
-        # TO-DO: add get method, using query from db
+        #TODO: add get method, using query from db
         return users, 201
 
-    #@ns.make_response(204, 'User successfully created.')
-    @ns.expect(user_model)
+
+    @api.expect(user_model)
     def put(self, id):
         """
 
@@ -51,7 +52,7 @@ class UserOperations(Resource):
             """
         return users, 204
 
-    @ns.response(204, 'User successfully deleted.')
+    @api.response(204, 'User successfully deleted.')
     def delete(self, id):
         """
 
@@ -59,5 +60,5 @@ class UserOperations(Resource):
             .
 
             """
-        # TO-DO: create delete_user method
+        #TODO: create delete_user method
         return None, 204
