@@ -6,19 +6,19 @@ ns = api.namespace('Collections', description='Operations related to books')
 
 books = []
 
-@api.route('/User')
+@ns.route('/User')
 class book_collection(Resource):
         # TO-DO: add marshalling to get only specific fields
 
     def get(self):
         '''
-        Return a list of books
+        Return a list of Users
         '''
 
         # TO-DO: create querying for list of books using db
         return books, 201
 
-@api.route('/Book')
+@ns.route('/Book')
 class book_operations(Resource):
     def get(self, id):
         '''
