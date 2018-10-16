@@ -1,4 +1,7 @@
+from flask import request
 from flask_restplus import Resource, Namespace, fields
+from .Business import create_book
+
 
 
 api = Namespace('Books', description='Operations related to books')
@@ -25,6 +28,8 @@ book_model = api.model("Book", {
     'Checked_out': fields.boolean(False),
 })
 
+
+
 @api.route('/')
 class ListBookOperations(Resource):
     def get(self, id):
@@ -33,6 +38,14 @@ class ListBookOperations(Resource):
         '''
         #TODO: add get method, using query from db
         return books, 201
+
+    #@api.expect(book_model, validate=True)
+    def post(self):
+        '''
+        Creates a new book.
+        '''
+        data = request.json
+        return None, 204
 
 @api.route('/genre/<string:genre>')
 @api.doc(params={'genre': 'The genre for a list of books'})
@@ -46,6 +59,11 @@ class GenreBookOperations(Resource):
 
 @api.route('/book/<int:id>')
 @api.doc(params={'id': 'An ID for a book'})
+@api.doc(params={'Title': 'The title for the book'})
+@api.doc(params={'Author': 'The author of the book'})
+@api.doc(params={'Genre': 'The genre of the book'})
+@api.doc(params={'YearReleased': 'The year the book was released'})
+@api.doc(params={'CheckedOut': 'Whether the book is checked out'})
 class BookOperations(Resource):
     def get(self, id):
         '''
@@ -61,16 +79,6 @@ class BookOperations(Resource):
         '''
         return None, 201
 
-    # @api.make_response(204, 'Book succesfully created.')
-    # @api.expect(book_model)
-    def post(self, id):
-        '''
-        Creates a new book.
-        '''
-        return books, 204
-
-    # @api.response(204, 'Book successfully deleted.')
-    # @api.expect(book_model)
     def delete(self, id):
         '''
         Deletes a book.

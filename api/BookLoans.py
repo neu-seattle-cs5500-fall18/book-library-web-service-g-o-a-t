@@ -23,6 +23,16 @@ class BookLoan(Resource):
        '''
        return bookLoans, 200
 
+   # Makes body match book loans
+   # TODO: change the input paramaters of put/create
+   @api.expect(book_loan_model, validate=True)
+   def post(self):
+       '''
+
+       Creates a new loan
+       '''
+       return None, 201
+
 @api.route('/<int:loanID>')
 class BookLoan(Resource):
     @api.doc(params={'loanID': 'The loan ID'})
@@ -43,15 +53,10 @@ class BookLoan(Resource):
         '''
         return None, 200
 
-    #TODO: change the input paramaters of put/create
-    def post(self,loanID):
-        '''
 
-        Creates a new loan
-        '''
-        return None, 200
 
-    @api.doc(params={'loanID': "The loan ID to be deleted"})
+
+    @api.doc(params={'loanID': "The loan to be deleted"})
     @api.response(200, "Deleted successfully")
     @api.response(404, "Delete unsuccessful")
     def delete(self, loanID):

@@ -29,6 +29,15 @@ class UserCollection(Resource):
         # TO-DO: create querying for list of users using db
         return users, 201
 
+    @api.expect(user_model, validate=True)
+    def post(self, id):
+        """
+
+            Creates a new user.
+
+            """
+        return users, 204
+
 
 @api.route('/user/<int:id>')
 @api.doc(params={'id': 'An ID for a user'})
@@ -43,7 +52,6 @@ class UserOperations(Resource):
         return users, 201
 
 
-    @api.expect(user_model)
     def put(self, id):
         '''
 
@@ -52,13 +60,6 @@ class UserOperations(Resource):
         '''
         return None, 204
 
-    def post(self, id):
-        """
-
-            Creates a new user.
-
-            """
-        return users, 204
 
     @api.response(204, 'User successfully deleted.')
     def delete(self, id):
