@@ -1,7 +1,7 @@
 from flask_restplus import Resource, Namespace, fields
 
 
-ns = Namespace('Collections', description='Operations related to users')
+ns = Namespace('UserList', description='Operations related to users')
 
 user_model = ns.model('User', {
     'id': fields.Integer(readOnly=True, description= 'The unique identifier of a user'),

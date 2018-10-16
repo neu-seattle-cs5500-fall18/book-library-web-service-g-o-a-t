@@ -1,8 +1,7 @@
 from flask_restplus import Resource, Namespace, fields
 
 
-
-ns = Namespace('Collections', description='Operations related to books')
+ns = Namespace('BookList', description='Operations related to books')
 
 books = []
 book_model = ns.model("Book", {
@@ -15,20 +14,8 @@ book_model = ns.model("Book", {
 })
 
 
-@ns.route('/User')
-class book_collection(Resource):
-    # TO-DO: add marshalling to get only specific fields
 
-    def get(self):
-        '''
-        Return a list of Users
-        '''
-
-        # TO-DO: create querying for list of books using db
-        return books, 201
-
-
-@ns.route('/Book')
+@ns.route('/')
 class book_operations(Resource):
     def get(self, id):
         '''

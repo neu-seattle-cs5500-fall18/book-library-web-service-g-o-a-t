@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restplus import fields, Api
 from .Users import ns as user_api
-from .Book import ns as book_api
+from .Books import ns as book_api
 
 app = Flask(__name__)
 api = Api(app)
