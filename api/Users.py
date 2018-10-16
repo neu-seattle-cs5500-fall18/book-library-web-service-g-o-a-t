@@ -7,7 +7,7 @@ user_model = ns.model('User', {
     'id': fields.Integer(readOnly=True, description= 'The unique identifier of a user'),
     'Name': fields.String(required=True, description = 'The name of a user')
 })
-class Person:
+class User:
     def __init__(self, name, ID, comments):
         self.name = name
         self.ID = ID
@@ -21,7 +21,6 @@ users = []
 @ns.route('/')
 class UserCollection(Resource):
     # TO-DO: add marshalling to get only specific fields
-
     def get(self):
         '''
             Return a list of users
@@ -34,31 +33,31 @@ class UserCollection(Resource):
 @ns.route('/user/<int:id>')
 class UserOperations(Resource):
     def get(self, id):
-        '''
+        """
 
-            Returns list of users.
+            Returns a specific user.
 
-            '''
+            """
         # TO-DO: add get method, using query from db
         return users, 201
 
     #@ns.make_response(204, 'User successfully created.')
     @ns.expect(user_model)
     def put(self, id):
-        '''
+        """
 
             Creates a new user.
 
-            '''
+            """
         return users, 204
 
     @ns.response(204, 'User successfully deleted.')
     def delete(self, id):
-        '''
+        """
 
             Deletes a user
             .
 
-            '''
+            """
         # TO-DO: create delete_user method
         return None, 204

@@ -1,9 +1,11 @@
 from flask import Flask
-from flask_restplus import Api, Resource
+from flask_restplus import Api, Resource, Namespace
 
 app = Flask(__name__)
 
 api = Api(app)
+
+ns = Namespace("TODO")
 
 
 @app.route('/Book')
