@@ -1,8 +1,5 @@
 from flask import request
 from flask_restplus import Resource, Namespace, fields
-from .Business import create_book
-
-
 
 api = Namespace('Books', description='Operations related to books')
 
@@ -22,12 +19,10 @@ class Book:
 book_model = api.model("Book", {
     'Title': fields.String(description='Book title'),
     'Author': fields.String(description='Book author'),
-    'ID': fields.Integer(min=1),
+    'ID': fields.Integer(description='Book ID'),
     'Genre': fields.String(description='Book genre'),
-    'Year_released': fields.Integer(min=0),
-    'Checked_out': fields.boolean(False),
+    'Year_released': fields.Integer(description='year released'),
 })
-
 
 
 @api.route('/')
@@ -39,7 +34,7 @@ class ListBookOperations(Resource):
         #TODO: add get method, using query from db
         return books, 201
 
-    #@api.expect(book_model, validate=True)
+    @api.expect(book_model, validate=True)
     def post(self):
         '''
         Creates a new book.
