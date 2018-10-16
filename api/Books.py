@@ -16,10 +16,20 @@ book_model = ns.model("Book", {
 
 
 @ns.route('/')
-class book_operations(Resource):
+class ListBookOperations(Resource):
     def get(self, id):
         '''
         Returns list of books.
+        '''
+        # TO-DO: add get method, using query from db
+        return books, 201
+
+
+@ns.route('/book/<int:id>')
+class BookOperations(Resource):
+    def get(self, id):
+        '''
+        Returns a specific book.
         '''
         # TO-DO: add get method, using query from db
         return books, 201
@@ -40,6 +50,4 @@ class book_operations(Resource):
         '''
         # TO-DO: create delete_book method
         return None, 204
-
-
 
