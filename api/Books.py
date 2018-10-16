@@ -54,9 +54,16 @@ class BookOperations(Resource):
         #TODO: add get method, using query from db
         return books, 201
 
+    def put(self, id):
+        '''
+
+        Updates a book
+        '''
+        return None, 201
+
     # @api.make_response(204, 'Book succesfully created.')
     # @api.expect(book_model)
-    def put(self, id):
+    def post(self, id):
         '''
         Creates a new book.
         '''

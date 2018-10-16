@@ -45,6 +45,14 @@ class UserOperations(Resource):
 
     @api.expect(user_model)
     def put(self, id):
+        '''
+
+        Updates a current user
+
+        '''
+        return None, 204
+
+    def post(self, id):
         """
 
             Creates a new user.

@@ -36,8 +36,15 @@ class BookLoan(Resource):
         '''
         return None, 200
 
+    def put(self, loanID):
+        '''
+
+        Updates a current loan
+        '''
+        return None, 200
+
     #TODO: change the input paramaters of put/create
-    def put(self,loanID):
+    def post(self,loanID):
         '''
 
         Creates a new loan
