@@ -1,4 +1,4 @@
-
+#Business logic such as the actual creating, destroying, and upating will go here
 
 
 def create_book(data):
