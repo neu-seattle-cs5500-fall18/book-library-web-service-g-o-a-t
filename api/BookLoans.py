@@ -65,7 +65,7 @@ class BookLoan(Resource):
         Deletes a book loan.
 
         '''
-        return None, 2000
+        return None, 200
 
 
 
