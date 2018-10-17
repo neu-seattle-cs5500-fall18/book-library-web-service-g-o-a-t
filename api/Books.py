@@ -37,7 +37,7 @@ parser.add_argument('checked_out', required=False)
 
 @api.route('/')
 @api.response(202, 'Accepted')
-@api.response(400, 'Could not get a list of books')
+@api.response(404, 'Could not get a list of books')
 class ListBookOperations(Resource):
 
     @api.expect(parser)

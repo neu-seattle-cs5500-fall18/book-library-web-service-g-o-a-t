@@ -1,5 +1,22 @@
 # book-library-web-service-g-o-a-t
- TO-DO: update post, delete so that we're not just working with
- sample library, but creating new instances of a book 
- add "update" -> specific calls for which 
- - get library route as over-arching
+ TODO: 
+ 
+ 
+ 
+ 
+ Response Codes: 
+ 
+ 2xx - Success
+200 - ok
+201 - created
+202 - accepted
+204 - no content
+
+
+
+4xx - Client Error
+400 - bad request
+401 - unauthorized
+403 - forbidden
+404 - not found
+
