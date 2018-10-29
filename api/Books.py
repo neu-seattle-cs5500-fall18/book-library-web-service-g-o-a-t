@@ -1,6 +1,6 @@
 from flask import request
 from flask_restplus import Resource, Namespace, fields, reqparse
-
+#import alchemy as book
 api = Namespace('Books', description='Operations related to books')
 
 books = []
@@ -46,7 +46,8 @@ class ListBookOperations(Resource):
         Returns list of books from given parameter.
         '''
         #TODO: add get method, using query from db
-        return books
+
+        return None
 
     @api.response(202, 'Accepted')
     @api.response(404, 'Could not create a new book')
