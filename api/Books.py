@@ -5,6 +5,7 @@ api = Namespace('Books', description='Operations related to books')
 
 books = []
 
+# GUCCI GANG GUCCI GANG GUCCI GANG
 
 class Book:
     def __init__(self, title, author, id, genre, year_released, checked_out, notes):
