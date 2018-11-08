@@ -112,8 +112,6 @@ class loan_DAO():
 
     def update(self, loan_id, updated_loan):
         old_record = self.retrieveOne(loan_id)
-        if not old_record:
-            api.abort(404)
         old_record.loan_id = updated_loan.loan_id
         old_record.book_id = updated_loan.book_id
         old_record.loaner_id = updated_loan.loaner_id
@@ -121,15 +119,11 @@ class loan_DAO():
         old_record.return_date = updated_loan.return_date
         old_record.comments = updated_loan.comments
         db.session.commit()
-        return "Book Loan " +str(loan_id) + " has been updated!"
+        return "Book Loan " + str(loan_id) + " has been updated!"
 
     def delete(self, loan_id):
 
         loan_to_delete = loans.query.filter(loanid=loan_id).first()
-
-        if loan_to_delete is None:
-            return "Invalid game ID"
-
         db.session.delete(loan_to_delete)
         db.session.commit()
         return "Book Loan " + str(loan_id) + " has been deleted!"
@@ -159,7 +153,7 @@ class Book_Loan_Collection(Resource):
             return 'Date values for return date are not valid', 404
         if not check_valid_timediff(data['checkout date'], data['return date']):
             return 'return date cannot be before checkout date'
-
+        """Still need to check that book_id is valid"""
 
         new_book_loan = book_loan(data["loan_id"], data['book_id'], data['user_id'],
                                   data['checkout date'], data["return date"], data['comments'])
@@ -196,98 +190,19 @@ class Book_Loan_Operations(Resource):
 
     def put(self, loan_id):
         updated_loan = request.json
-        DAO.update(loan_id, updated_loan)
-        return "Successfully updated", 200
+        updated_loan = DAO.retrieveOne(loan_id)
+        if not updated_loan:
+            api.abort(404)
+        else:
+            DAO.update(loan_id, updated_loan)
+            return "Successfully updated loan " + str(loan_id), 200
 
     @api.response(200, "Book Loan successfully deleted")
     @api.response(404, "Unable to delete Book Loan")
     def delete(self, loan_id):
         """Deletes a Book Loan"""
+        loan_to_delete = DAO.retrieveOne(loan_id)
+        if not loan_to_delete:
+            api.abort(404)
         DAO.delete(loan_id)
-        return "Book Loan has been deleted", 200
-
-
-""" Below this line is the old code
-
-book_loan_model = api.model('BookLoans', {
-   'loanID': fields.Integer(readOnly=True, description='The loan ID number.'),
-   'bookID': fields.Integer(readOnly=True, description='The book ID of the book that is checked out.'),
-   'LoanerID': fields.Integer(required=True, description='The ID of the user who checked the book out.'),
-   'CheckedOutDate': fields.String(readOnly=True, description='The checked out date.'),
-   'ReturnDate': fields.String(readOnly=True, description='The return date.'),
-    'Notes': fields.String(readOnly=True, description='Extra comments about the loan')
-   })
-
-
-@api.response(202, 'Accepted')
-@api.response(404, 'Could not do successfully')
-@api.route('/')
-class BookLoan(Resource):
-
-
-   @api.response(404, "The loans were not found")
-   def get(self):
-       '''
-
-       A list of all books currently checkd out.
-       '''
-       book_loans = []
-
-       loans = db.query.all()
-
-       for loan in loans:
-           book_loans.append(loan)
-
-       return jsonify(book_loans)
-
-   # Makes body match book loans
-   # TODO: change the input paramaters of put/create
-   @api.expect(book_loan_model, validate=True)
-
-
-   @api.response(201, 'Created a new loan')
-   def post(self):
-       '''
-
-       Creates a new loan
-       '''
-       return None
-
-@api.response(202, 'Successful!')
-@api.response(404, 'Could not complete')
-@api.route('/<int:loanID>')
-class BookLoan(Resource):
-    @api.doc(params={'loanID': 'The loan ID'})
-
-    def get(self, loanID):
-        '''
-
-        Gets a current loan.
-
-        '''
-        return None
-
-    def put(self, loanID):
-        '''
-
-        Updates a current loan
-        '''
-        return None
-
-
-
-
-    @api.doc(params={'loanID': "The loan to be deleted"})
-    @api.response(202, "Deleted successfully")
-    @api.response(404, "Delete unsuccessful")
-    def delete(self, loanID):
-        '''
-
-        Deletes a book loan.
-
-        '''
-        return None
-
-
-
-"""
+        return "Book Loan " + str(loan_id) + " has been deleted", 200
