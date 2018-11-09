@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.contrib.fixers import ProxyFix
 from api.SharedModel import db
 from datetime import time, datetime, date, timedelta
+from api.DateTime import valid_date, string_to_date, check_valid_timediff
 
 api = Namespace('BookLoans', description='Operations related to book loans')
 
@@ -15,23 +16,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://ec2-23-23-80-20.compute-1.
 db = SQLAlchemy(app)
 
 
-def valid_date(datestring):
-    try:
-        datetime.datetime.strptime(datestring, '%Y/%m/%d')
-        return True
-    except ValueError:
-        return False
 
-def string_to_date(datestring):
-        return datetime.datetime.strptime(datestring, '%Y/%m/%d')
-
-def check_valid_timediff(datestring1, datestring2):
-    first = string_to_date(datestring1)
-    second = string_to_date(datestring2)
-    diff = (first - second) / timedelta(days=1)
-    if diff < 0:
-        return False
-    return True
 
 
 
@@ -136,7 +121,7 @@ DAO = loan_DAO()
 @api.response(202, 'Book Loans successfully retrieved')
 @api.response(404, "Book Loan not founded")
 @api.route('/')
-class Book_Loan_Collection(Resource):
+class Book_Loan_Controller(Resource):
     """Returns all of the loans"""
     def get(self):
         return DAO.retrieve_all_loans(), 202
@@ -162,7 +147,7 @@ class Book_Loan_Collection(Resource):
 
 
 @api.route('/<int:loan_id>')
-class Book_Loan_Operations(Resource):
+class Book_Loan_Controller_Loan_ID(Resource):
     @api.response(200, 'Book Loan successfully obtained')
     @api.response(404, 'Unable to retrieve book loan')
     @api.marshal_with(book_loan_model)
