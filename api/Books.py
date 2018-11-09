@@ -91,6 +91,12 @@ class BookDAO(object):
             db.session.delete(deleted_book)
             db.session.commit()
 
+    def changeCheckOut(self, book_id, status):
+        single_book = BookDbModel.query.filter_by(id=book_id).first()
+        single_book.checked_out = status
+        db.session.commit()
+
+
 
 DAO = BookDAO()
 

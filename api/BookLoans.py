@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, abort
 from flask_restplus import Api, Resource, marshal, fields, fields, Namespace
 from random import randint
 from flask_sqlalchemy import SQLAlchemy
@@ -6,6 +6,8 @@ from werkzeug.contrib.fixers import ProxyFix
 from api.SharedModel import db
 from datetime import time, datetime, date, timedelta
 from api.DateTime import valid_date, string_to_date, check_valid_timediff
+from api.Books import BookDAO
+from api.UserModel import UserDAO
 
 api = Namespace('BookLoans', description='Operations related to book loans')
 
@@ -53,8 +55,8 @@ class book_loan(object):
         self.loan_id = loan_id
         self.book_id = book_id
         self.loaner_id = loaner_id
-        self.checkout_date = checkout_date
-        self.return_date = return_date
+        self.checkout_date = string_to_date(checkout_date)
+        self.return_date = string_to_date(return_date)
         self.comments = comments
 
 # Book Loan DAO
@@ -117,6 +119,9 @@ class loan_DAO():
 
 
 DAO = loan_DAO()
+DAO_Books = BookDAO()
+DAO_Users = UserDAO()
+
 
 @api.response(202, 'Book Loans successfully retrieved')
 @api.response(404, "Book Loan not founded")
@@ -138,7 +143,21 @@ class Book_Loan_Controller(Resource):
             return 'Date values for return date are not valid', 404
         if not check_valid_timediff(data['checkout date'], data['return date']):
             return 'return date cannot be before checkout date'
+
+
         """Still need to check that book_id is valid"""
+        single_book = DAO_Books.get_a_book(data['book_id'])
+        if not single_book:
+            abort(404, 'Invalid book ID')
+
+        """Still need to change book's checkout status"""
+        DAO_Books.changeCheckOut(data['book_id'], True)
+
+        """Still need to check that user_id is valid"""
+        user = DAO_Users.get_a_user(data['user_id'])
+        if not user:
+            abort(404, 'Invalid user ID')
+
 
         new_book_loan = book_loan(data["loan_id"], data['book_id'], data['user_id'],
                                   data['checkout date'], data["return date"], data['comments'])
@@ -155,21 +174,21 @@ class Book_Loan_Controller_Loan_ID(Resource):
         """Retrieves a single loan from a loan id"""
         single_loan = DAO.retrieveOne(loan_id)
         if not single_loan:
-            api.abort(404)
+            abort(404, 'Invalid Loan ID')
         else:
             return single_loan, 200
 
     def get(self, user_id):
         loans_for_user = DAO.retrieveByUser(user_id)
         if not loans_for_user:
-            api.abort(404)
+            abort(404, 'Invalid User ID')
         else:
             return loans_for_user, 200
 
     def get(self, book_id):
         loans_for_book = DAO.retrieveByBook(book_id)
         if not loans_for_book:
-            api.abort(404)
+            abort(404, 'Invalid Book ID')
         else:
             return loans_for_book, 200
 
@@ -177,7 +196,7 @@ class Book_Loan_Controller_Loan_ID(Resource):
         updated_loan = request.json
         updated_loan = DAO.retrieveOne(loan_id)
         if not updated_loan:
-            api.abort(404)
+            abort(404, 'Invalid Loan ID')
         else:
             DAO.update(loan_id, updated_loan)
             return "Successfully updated loan " + str(loan_id), 200
@@ -186,8 +205,15 @@ class Book_Loan_Controller_Loan_ID(Resource):
     @api.response(404, "Unable to delete Book Loan")
     def delete(self, loan_id):
         """Deletes a Book Loan"""
+
+
+        """Still need to change Book's status from checkedout to NOT checkedout"""
+
         loan_to_delete = DAO.retrieveOne(loan_id)
         if not loan_to_delete:
-            api.abort(404)
+            abort(404, 'Invalid Loan ID')
+
+        DAO_Books.changeCheckOut(loan_to_delete.book_id, False)
         DAO.delete(loan_id)
         return "Book Loan " + str(loan_id) + " has been deleted", 200
+
