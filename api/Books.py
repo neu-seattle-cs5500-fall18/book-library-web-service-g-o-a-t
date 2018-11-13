@@ -39,7 +39,7 @@ parser.add_argument('year_released', required=False)
 parser.add_argument('checked_out', required=False)
 
 #Database model for books
-class BookDbModel (db.model):
+class BookDbModel (db.Model):
     title = db.Column(db.String(100))
     author = db.Column(db.String(100))
     id = db.Column(db.Integer, primary_key=True)

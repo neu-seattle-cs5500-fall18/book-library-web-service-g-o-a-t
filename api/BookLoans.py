@@ -7,7 +7,7 @@ from api.SharedModel import db
 from datetime import time, datetime, date, timedelta
 from api.DateTime import valid_date, string_to_date, check_valid_timediff
 from api.Books import BookDAO
-from api.UserModel import UserDAO
+from api.Users import UserDAO
 
 api = Namespace('BookLoans', description='Operations related to book loans')
 
