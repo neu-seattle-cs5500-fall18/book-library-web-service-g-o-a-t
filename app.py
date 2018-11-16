@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://dbektwgbeeergd:7728b9b046fe3d9ca2fe131ab9195aa25dd9e01d23e1b2a793a4063ec88edfc3@ec2-23-23-80-20.compute-1.amazonaws.com:5432/d5mbf8bg43kuh8'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/librarytest'
 api.init_app(app)
 
 

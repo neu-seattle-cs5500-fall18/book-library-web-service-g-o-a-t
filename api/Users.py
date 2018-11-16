@@ -1,17 +1,16 @@
 from flask import Flask, request
-from flask_restplus import Namespace, Resource, fields
+from flask_restplus import Namespace, Resource, fields, reqparse
 from api.SharedModel import db
+
+parser = reqparse.RequestParser()
+parser.add_argument('name', type=str)
+parser.add_argument('deleted', type=bool)
+parser.add_argument('comments', type=str)
 
 api = Namespace('Users', description='Operations related to users')
 
 user_model = api.model('User', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a user'),
-    'name': fields.String(required=True, description='The name of a user'),
-    'deleted': fields.Boolean(required=False, description='deleted or not'),
-    'comments': fields.String(required=True, description='comments about books?')
-})
-
-update_model = api.model('update_user', {
     'name': fields.String(required=True, description='The name of a user'),
     'deleted': fields.Boolean(required=False, description='deleted or not'),
     'comments': fields.String(required=True, description='comments about books?')
@@ -94,11 +93,11 @@ class UserCollection(Resource):
 
     @api.response(202, 'User successfully created')
     @api.response(404, 'Could not create a new user')
-    @api.expect(user_model)
+    @api.expect(parser)
     def post(self):
         '''Creates a new user.'''
-        data = request.json
-        new_user = User(data['id'], data['name'], data['deleted'], data['comments'])
+        data = parser.parse_args()
+        new_user = User(0, data['name'], data['deleted'], data['comments'])
         DAO.store(new_user)
         return 'success', 202
 
@@ -112,16 +111,16 @@ class UserOperations(Resource):
         '''Return a certain user by id'''
         user = DAO.get_a_user(id)
         if not user:
-            api.abort(404)
+            abi.abort(404)
         else:
             return user, 200
 
     @api.response(200, 'User successfully updated.')
     @api.response(404, 'Could not update current user')
-    @api.expect(update_model)
+    @api.expect(parser)
     def put(self, id):
         ''' Updates a current user'''
-        a_updated_user = request.json
+        a_updated_user = parser.parse_args()
         DAO.update(id, a_updated_user)
         return 'sucess', 200
 
