@@ -75,7 +75,8 @@ class BookDAO(object):
         db.session.commit()
         return new_book
 
-    def get_a_book(self,book_id):
+
+    def get_a_book(self, book_id):
         a_book = BookDbModel.query.filter_by(id=book_id).first()
         return a_book
 
@@ -86,9 +87,9 @@ class BookDAO(object):
 
         old_book.title = updated_book['title']
         old_book.author = updated_book['author']
-        old_book.author = updated_book['genre']
-        old_book.author = updated_book['year_released']
-        old_book.author = updated_book['checked_out']
+        old_book.genre = updated_book['genre']
+        old_book.year_released = updated_book['year_released']
+        old_book.checked_out = updated_book['checked_out']
         old_book.user_notes = updated_book['user_notes']
         db.session.commit()
 

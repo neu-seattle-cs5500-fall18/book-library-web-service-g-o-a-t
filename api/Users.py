@@ -1,6 +1,13 @@
 from flask import Flask, request
-from flask_restplus import Namespace, Resource, fields
+
+from flask_restplus import Namespace, Resource, fields, reqparse
 from api.SharedModel import db
+
+parser = reqparse.RequestParser()
+parser.add_argument('name', type=str)
+parser.add_argument('deleted', type=bool)
+parser.add_argument('comments', type=str)
+
 
 api = Namespace('Users', description='Operations related to users')
 
@@ -80,7 +87,6 @@ class UserDAO(object):
         db.session.delete(deleted_user)
         db.session.commit()
 
-
 DAO = UserDAO()
 
 
@@ -94,11 +100,12 @@ class UserCollection(Resource):
 
     @api.response(202, 'User successfully created')
     @api.response(404, 'Could not create a new user')
-    @api.expect(user_model)
+
+    @api.expect(parser)
     def post(self):
         '''Creates a new user.'''
-        data = request.json
-        new_user = User(data['id'], data['name'], data['deleted'], data['comments'])
+        data = parser.parse_args()
+        new_user = User(0, data['name'], data['deleted'], data['comments'])
         DAO.store(new_user)
         return 'success', 202
 
@@ -118,10 +125,10 @@ class UserOperations(Resource):
 
     @api.response(200, 'User successfully updated.')
     @api.response(404, 'Could not update current user')
-    @api.expect(update_model)
+    @api.expect(parser)
     def put(self, id):
         ''' Updates a current user'''
-        a_updated_user = request.json
+        a_updated_user = parser.parse_args()
         DAO.update(id, a_updated_user)
         return 'sucess', 200
 
