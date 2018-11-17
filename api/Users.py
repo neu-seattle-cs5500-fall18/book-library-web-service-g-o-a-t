@@ -1,4 +1,5 @@
 from flask import Flask, request
+
 from flask_restplus import Namespace, Resource, fields, reqparse
 from api.SharedModel import db
 
@@ -7,10 +8,17 @@ parser.add_argument('name', type=str)
 parser.add_argument('deleted', type=bool)
 parser.add_argument('comments', type=str)
 
+
 api = Namespace('Users', description='Operations related to users')
 
 user_model = api.model('User', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a user'),
+    'name': fields.String(required=True, description='The name of a user'),
+    'deleted': fields.Boolean(required=False, description='deleted or not'),
+    'comments': fields.String(required=True, description='comments about books?')
+})
+
+update_model = api.model('update_user', {
     'name': fields.String(required=True, description='The name of a user'),
     'deleted': fields.Boolean(required=False, description='deleted or not'),
     'comments': fields.String(required=True, description='comments about books?')
@@ -79,7 +87,6 @@ class UserDAO(object):
         db.session.delete(deleted_user)
         db.session.commit()
 
-
 DAO = UserDAO()
 
 
@@ -93,6 +100,7 @@ class UserCollection(Resource):
 
     @api.response(202, 'User successfully created')
     @api.response(404, 'Could not create a new user')
+
     @api.expect(parser)
     def post(self):
         '''Creates a new user.'''
@@ -111,7 +119,7 @@ class UserOperations(Resource):
         '''Return a certain user by id'''
         user = DAO.get_a_user(id)
         if not user:
-            abi.abort(404)
+            api.abort(404)
         else:
             return user, 200
 
