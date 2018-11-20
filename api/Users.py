@@ -7,6 +7,7 @@ parser.add_argument('name', type=str)
 parser.add_argument('deleted', type=bool)
 parser.add_argument('comments', type=str)
 
+
 api = Namespace('Users', description='Operations related to users')
 
 user_model = api.model('User', {
@@ -79,7 +80,6 @@ class UserDAO(object):
         db.session.delete(deleted_user)
         db.session.commit()
 
-
 DAO = UserDAO()
 
 
@@ -111,7 +111,7 @@ class UserOperations(Resource):
         '''Return a certain user by id'''
         user = DAO.get_a_user(id)
         if not user:
-            abi.abort(404)
+            api.abort(404)
         else:
             return user, 200
 

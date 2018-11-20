@@ -220,3 +220,4 @@ class ReturnBook(Resource):
         a_updated_loan = parser.parse_args()
         DAO_checkout.return_a_book(a_updated_loan['user_id'], a_updated_loan['book_id'], loan_id)
         return 'sucess', 200
+
