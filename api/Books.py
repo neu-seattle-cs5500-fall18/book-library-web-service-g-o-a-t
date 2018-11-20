@@ -119,7 +119,7 @@ DAO = BookDAO()
 @api.route('/')
 @api.response(202, 'Accepted')
 @api.response(404, 'Could not get a list of books')
-class BooksController(Resource):
+class BooksCollection(Resource):
 
     # @api.expect(parser)
     def get(self):
@@ -132,12 +132,12 @@ class BooksController(Resource):
 
     @api.response(202, 'Accepted')
     @api.response(404, 'Could not create a new book')
-    @api.expect(book_api_model)
+    @api.expect(parser)
     def post(self):
         '''
         Creates a new book.
         '''
-        data = request.json
+        data = parser.parse.parse_args()
         new_book= Book(data['title'], data['author'], data['id'], data['genre'], data['year_released'],data['checked_out'], data['user_notes'])
         DAO.store(new_book)
         return 'sucess', 202
@@ -148,13 +148,17 @@ class BooksController(Resource):
 @api.response(404,'ID does not exist')
 @api.route('/book/<int:id>')
 
-class BookController(Resource):
+class BookOperation(Resource):
+    @api.response(202, 'Book was successfully found')
     @api.response(404, 'Could not get specific book')
     @api.marshal_with(book_api_model)
+    #@api.expect(parser)
     def get(self, id):
         '''
         Returns a specific book.
         '''
+        '''input_book_id = parser.parse_args()
+        book = DAO.get_a_book(input_book_id)'''
         book = DAO.get_a_book(id)
         if not book:
             api.abort(404)
@@ -162,17 +166,20 @@ class BookController(Resource):
             return book
 
     @api.response(404, "could not update book")
+    @api.response(202, 'Book successfully updated')
     @api.expect(book_api_model)
     def put(self, id):
         '''
 
         Updates a book
         '''
-        updated_book = request.json
+        data = parser.parse_args()
+        updated_book = data
         DAO.update(id, updated_book)
         return 'success', 200
 
     @api.response(404, "could not delete book")
+    @api.response(200, 'Book has been deleted')
     def delete(self, id):
         '''
         Deletes a book.
