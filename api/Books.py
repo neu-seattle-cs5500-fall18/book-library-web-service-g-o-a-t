@@ -27,7 +27,8 @@ parser.add_argument('title', required=False)
 parser.add_argument('author', required=False)
 parser.add_argument('genre', required=False)
 parser.add_argument('year_released', required=False)
-parser.add_argument('checked_out', required=False)
+parser.add_argument('checked_out', required=False, type=bool)
+parser.add_argument('user_notes', required=False)
 
 #Book class for python
 class Book(object):
@@ -137,8 +138,8 @@ class BooksCollection(Resource):
         '''
         Creates a new book.
         '''
-        data = parser.parse.parse_args()
-        new_book= Book(data['title'], data['author'], data['id'], data['genre'], data['year_released'],data['checked_out'], data['user_notes'])
+        data = parser.parse_args()
+        new_book= Book(title=data['title'],author= data['author'],id= 0,genre= data['genre'],year_released=data['year_released'],checked_out=data['checked_out'],user_notes= data['user_notes'])
         DAO.store(new_book)
         return 'sucess', 202
 
