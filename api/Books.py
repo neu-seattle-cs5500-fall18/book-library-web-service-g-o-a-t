@@ -1,5 +1,5 @@
 from flask import Flask, request
-from flask_restplus import Resource, Namespace, fields, reqparse
+from flask_restplus import Resource, Namespace, fields, reqparse, inputs
 from .SharedModel import db
 api = Namespace('Books', description='Operations related to books')
 
@@ -21,13 +21,24 @@ book_api_model = api.model('Book', {
     'user_notes': fields.String(description = 'notes from user'),
 })
 
-#Input query processor for our get method
+#parser to make a book
 parser = reqparse.RequestParser()
 parser.add_argument('title', required=False)
 parser.add_argument('author', required=False)
 parser.add_argument('genre', required=False)
 parser.add_argument('year_released', required=False)
-parser.add_argument('checked_out', required=False)
+parser.add_argument('checked_out', required=False, type=inputs.boolean)
+parser.add_argument('user_notes', required=False)
+
+#searchparser to find a book
+searchparser = reqparse.RequestParser()
+searchparser.add_argument('title', required=False)
+searchparser.add_argument('author', required=False)
+searchparser.add_argument('genre', required=False)
+searchparser.add_argument('year_released', required=False)
+searchparser.add_argument('checked_out', default = False, required=False, type=inputs.boolean)
+
+
 
 #Book class for python
 class Book(object):
@@ -86,8 +97,8 @@ class BookDAO(object):
 
         old_book.title = updated_book['title']
         old_book.author = updated_book['author']
-        old_book.author = updated_book['genre']
-        old_book.author = updated_book['year_released']
+        old_book.genre = updated_book['genre']
+        old_book.year_released = updated_book['year_released']
         old_book.checked_out = updated_book['checked_out']
         old_book.user_notes = updated_book['user_notes']
         db.session.commit()
@@ -119,7 +130,7 @@ DAO = BookDAO()
 @api.route('/')
 @api.response(202, 'Accepted')
 @api.response(404, 'Could not get a list of books')
-class BooksController(Resource):
+class BooksCollection(Resource):
 
     # @api.expect(parser)
     def get(self):
@@ -132,13 +143,13 @@ class BooksController(Resource):
 
     @api.response(202, 'Accepted')
     @api.response(404, 'Could not create a new book')
-    @api.expect(book_api_model)
+    @api.expect(parser)
     def post(self):
         '''
         Creates a new book.
         '''
-        data = request.json
-        new_book= Book(data['title'], data['author'], data['id'], data['genre'], data['year_released'],data['checked_out'], data['user_notes'])
+        data = parser.parse_args()
+        new_book= Book(title=data['title'],author= data['author'],id= 0,genre= data['genre'],year_released=data['year_released'],checked_out=data['checked_out'],user_notes= data['user_notes'])
         DAO.store(new_book)
         return 'sucess', 202
 
@@ -147,14 +158,17 @@ class BooksController(Resource):
 @api.response(202, 'Accepted')
 @api.response(404,'ID does not exist')
 @api.route('/book/<int:id>')
-
-class BookController(Resource):
+class BookOperation(Resource):
+    @api.response(202, 'Book was successfully found')
     @api.response(404, 'Could not get specific book')
     @api.marshal_with(book_api_model)
+    #@api.expect(parser)
     def get(self, id):
         '''
         Returns a specific book.
         '''
+        '''input_book_id = parser.parse_args()
+        book = DAO.get_a_book(input_book_id)'''
         book = DAO.get_a_book(id)
         if not book:
             api.abort(404)
@@ -162,17 +176,20 @@ class BookController(Resource):
             return book
 
     @api.response(404, "could not update book")
+    @api.response(202, 'Book successfully updated')
     @api.expect(book_api_model)
     def put(self, id):
         '''
 
         Updates a book
         '''
-        updated_book = request.json
+        data = parser.parse_args()
+        updated_book = data
         DAO.update(id, updated_book)
         return 'success', 200
 
     @api.response(404, "could not delete book")
+    @api.response(200, 'Book has been deleted')
     def delete(self, id):
         '''
         Deletes a book.
@@ -180,3 +197,177 @@ class BookController(Resource):
         DAO.delete(id)
         return 'Book deleted successfully', 200
 
+@api.route('/AdvancedSearch')
+class SearchController(Resource):
+    @api.expect(parser)
+    def get(self):
+        '''
+
+        An advanced search engine
+        '''
+        search = searchparser.parse_args()
+        title = search['title']
+        author = search['author']
+        genre = search['genre']
+        year_released = search['year_released']
+        print(year_released)
+        checked_out = search['checked_out']
+        q = BookDbModel.query
+        if title:
+            q = q.filter_by(title = title)
+        if author:
+            q = q.filter_by(author = author)
+        if genre:
+            q = q.filter_by(genre = genre)
+        if year_released:
+            q = q.filter_by(year_released = year_released)
+            print(DAO.to_dic(q.all()))
+        if checked_out == True or checked_out == False:
+            q = q.filter_by(checked_out = checked_out)
+
+
+
+        return DAO.to_dic(q.all()), 202
+
+
+
+
+
+@api.response(202, 'Accepted')
+@api.response(404,'Author does not exist')
+@api.route('/book/<string:author>')
+class BookByAuthor(Resource):
+    @api.response(202, 'books by this author found')
+    @api.response(404, 'no books by that author')
+    @api.expect(parser)
+    def get(self):
+        author = parser.parse_args()
+        all_books = DAO.get_all_books()
+        return_books = []
+        for book in all_books:
+            if book.author == author:
+                return_books.append(book)
+        if len(return_books) == 0:
+            return 'no books by that author' + author, 404
+
+        return return_books, 202
+
+@api.response(202, 'Accepted')
+@api.response(404,'Genre does not exist')
+@api.route('/book/<string:genre>')
+class BookByGenre(Resource):
+    @api.response(202, 'books in this genre found')
+    @api.response(404, 'no books in this genre')
+    @api.expect(parser)
+    def get(self):
+        genre = parser.parse_args()
+        all_books = DAO.get_all_books()
+        return_books = []
+        for book in all_books:
+            if book.genre == genre:
+                return_books.append(book)
+        if len(return_books) == 0:
+            return 'no books in that genre' + genre, 404
+
+        return return_books, 202
+
+
+@api.response(202, 'Accepted')
+@api.response(404,'Release date does not exist')
+@api.route('/book/<string:year_released>')
+class BookByYear(Resource):
+    @api.response(202, 'books released in this calendar year')
+    @api.response(404, 'no books released in this calendar year')
+    @api.expect(parser)
+    def get(self):
+        year = parser.parse_args()
+        all_books = DAO.get_all_books()
+        return_books = []
+        for book in all_books:
+            if book.release_year == year:
+                return_books.append(book)
+        if len(return_books) == 0:
+            return 'No books found released in ' + year, 404
+
+        return return_books, 202
+
+@api.response(202, 'Accepted')
+@api.response(404, 'No books by that author under that genre')
+@api.route('book/<string:author>/<string:genre>')
+class BookByAuthorGenre(Resource):
+    @api.response(202, "Books by that author in that genre")
+    @api.response(404, "No books by that author under than genre")
+    @api.expect(parser)
+    def get(self):
+        data = parser.parse_args()
+        author = data['author']
+        genre = data['genre']
+        all_books = DAO.get_all_books()
+        author_books = []
+        for book in all_books:
+            if book.author == author and book.genre == genre:
+                author_books.append(book)
+        if len(author_books) == 0:
+            return 'No books by ' + author + ' under ' + genre, 404
+        return author_books
+
+@api.response(202, 'Accepted')
+@api.response(404, 'No books by that author released in that year')
+@api.route('book/<string:author>/<string:year_released>')
+class BookByAuthorYear(Resource):
+    @api.response(202, "Books by that author in that year")
+    @api.response(404, "No books by that author under than year")
+    @api.expect(parser)
+    def get(self):
+        data = parser.parse_args()
+        author = data['author']
+        year = data['year_released']
+        all_books = DAO.get_all_books()
+        author_books = []
+        for book in all_books:
+            if book.author == author and book.year_released == year:
+                author_books.append(book)
+        if len(author_books) == 0:
+            return 'No books by ' + author + ' in that ' + year, 404
+        return author_books
+
+@api.response(202, 'Accepted')
+@api.response(404, 'No Books in that genre released in that year')
+@api.route('book/<string:genre>/<string:year_released>')
+class BookByGenreYear(Resource):
+    @api.response(202, 'Books in that genre released in that year')
+    @api.response(404, "No Books in that genre released in that year")
+    @api.expect(parser)
+    def get(self):
+        data = parser.parse_args()
+        genre = data['genre']
+        year = data['year_released']
+        all_books = DAO.get_all_books()
+        return_books = []
+        for book in all_books:
+            if book.genre == genre and book.year_released == year:
+                return_books.append(book)
+        if len(return_books) == 0:
+            return 'No books in ' + genre + ' in that ' + year, 404
+        return return_books
+
+@api.response(202, 'Accepted')
+@api.response(404, 'No Books by that author in that genre released in that year')
+@api.route('book/<string:author>/<string:genre>/<string:year_released>')
+class BookByAuthorGenreYear(Resource):
+    @api.response(202, 'Books by that author, in that genre, released in that year')
+    @api.response(404, 'No books found by that author, in that genre, released that year')
+    @api.expect(parser)
+    def get(self):
+        data = parser.parse_args()
+        author = data['author']
+        genre = data['genre']
+        year = data['year_released']
+        all_books = DAO.get_all_books()
+        return_books = []
+        for book in all_books:
+            if book.author == author and book.genre == genre and book.year_released == year:
+                return_books.append(book)
+        if len(return_books) == 0:
+            return 'No books by ' + author + " in the genre " + genre + ' released in year ' + year, 404
+        return return_books
