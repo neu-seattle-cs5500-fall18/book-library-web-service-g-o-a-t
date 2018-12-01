@@ -20545,8 +20545,8 @@ sequence|table|14562051|14562053|1
       <Comment>standard public schema</Comment>
       <StateNumber>3693085</StateNumber>
       <Owner>dbektwgbeeergd</Owner>
-      <IntrospectionTimestamp>2018-12-01.11:57:41.909</IntrospectionTimestamp>
-      <IntrospectionStateNumber>69428678</IntrospectionStateNumber>
+      <IntrospectionTimestamp>2018-12-01.12:15:08.415</IntrospectionTimestamp>
+      <IntrospectionStateNumber>92042978</IntrospectionStateNumber>
       <Current>1</Current>
       <Visible>1</Visible>
     </schema>
@@ -20647,7 +20647,7 @@ sequence|table|14562051|14562053|1
     <table id="3742" parent="3727" name="users">
       <ObjectId>13738311</ObjectId>
       <Owner>dbektwgbeeergd</Owner>
-      <StateNumber>37082305</StateNumber>
+      <StateNumber>92042978</StateNumber>
     </table>
     <column id="3743" parent="3738" name="version_num">
       <Position>1</Position>
@@ -20835,13 +20835,20 @@ sequence|table|14562051|14562053|1
       <StateNumber>37082305</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <index id="3773" parent="3742" name="users_pkey">
+    <column id="3773" parent="3742" name="email">
+      <Position>5</Position>
+      <DataType>varchar(80)|0s</DataType>
+      <StateNumber>92042978</StateNumber>
+      <TypeId>1043</TypeId>
+    </column>
+    <index id="3774" parent="3742" name="users_pkey">
       <ObjectId>13738315</ObjectId>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
     </index>
-    <key id="3774" parent="3742" name="users_pkey">
+    <key id="3775" parent="3742" name="users_pkey">
       <ObjectId>13738316</ObjectId>
+      <StateNumber>37082305</StateNumber>
       <ColNames>id</ColNames>
       <UnderlyingIndexName>users_pkey</UnderlyingIndexName>
       <Primary>1</Primary>

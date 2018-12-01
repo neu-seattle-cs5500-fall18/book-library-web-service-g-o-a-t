@@ -74,6 +74,7 @@ class UserDAO(object):
         old_record.name = updated_user['name']
         old_record.deleted = updated_user['deleted']
         old_record.comments = updated_user['comments']
+        old_record.email = updated_user['email']
         db.session.commit()
 
     def delete(self, id):
