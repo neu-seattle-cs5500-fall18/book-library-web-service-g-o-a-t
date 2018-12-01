@@ -1,5 +1,5 @@
 from flask import Flask, request
-from flask_restplus import Resource, Namespace, fields, reqparse
+from flask_restplus import Resource, Namespace, fields, reqparse, inputs
 from .SharedModel import db
 api = Namespace('Books', description='Operations related to books')
 
@@ -21,14 +21,24 @@ book_api_model = api.model('Book', {
     'user_notes': fields.String(description = 'notes from user'),
 })
 
-#Input query processor for our get method
+#parser to make a book
 parser = reqparse.RequestParser()
 parser.add_argument('title', required=False)
 parser.add_argument('author', required=False)
 parser.add_argument('genre', required=False)
 parser.add_argument('year_released', required=False)
-parser.add_argument('checked_out', required=False, type=bool)
+parser.add_argument('checked_out', required=False, type=inputs.boolean)
 parser.add_argument('user_notes', required=False)
+
+#searchparser to find a book
+searchparser = reqparse.RequestParser()
+searchparser.add_argument('title', required=False)
+searchparser.add_argument('author', required=False)
+searchparser.add_argument('genre', required=False)
+searchparser.add_argument('year_released', required=False)
+searchparser.add_argument('checked_out', default = False, required=False, type=inputs.boolean)
+
+
 
 #Book class for python
 class Book(object):
@@ -186,6 +196,42 @@ class BookOperation(Resource):
         '''
         DAO.delete(id)
         return 'Book deleted successfully', 200
+
+@api.route('/AdvancedSearch')
+class SearchController(Resource):
+    @api.expect(parser)
+    def get(self):
+        '''
+
+        An advanced search engine
+        '''
+        search = searchparser.parse_args()
+        title = search['title']
+        author = search['author']
+        genre = search['genre']
+        year_released = search['year_released']
+        print(year_released)
+        checked_out = search['checked_out']
+        q = BookDbModel.query
+        if title:
+            q = q.filter_by(title = title)
+        if author:
+            q = q.filter_by(author = author)
+        if genre:
+            q = q.filter_by(genre = genre)
+        if year_released:
+            q = q.filter_by(year_released = year_released)
+            print(DAO.to_dic(q.all()))
+        if checked_out == True or checked_out == False:
+            q = q.filter_by(checked_out = checked_out)
+
+
+
+        return DAO.to_dic(q.all()), 202
+
+
+
+
 
 @api.response(202, 'Accepted')
 @api.response(404,'Author does not exist')
