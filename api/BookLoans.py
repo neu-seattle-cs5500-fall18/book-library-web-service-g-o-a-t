@@ -221,3 +221,13 @@ class ReturnBook(Resource):
         DAO_checkout.return_a_book(a_updated_loan['user_id'], a_updated_loan['book_id'], loan_id)
         return 'sucess', 200
 
+@api.route('/<int:due_in_x_days>')
+class RemindUsers(Resource):
+    @api.response(200, 'Reminder emails sent')
+    @api.response(404, 'error reminding users')
+    @api.expect(parser)
+    def get(self, days_due):
+
+
+
+        return None
