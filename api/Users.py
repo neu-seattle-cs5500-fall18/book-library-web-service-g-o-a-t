@@ -7,6 +7,9 @@ parser.add_argument('name', type=str)
 parser.add_argument('deleted', type=bool)
 parser.add_argument('comments', type=str)
 
+noteparser = reqparse.RequestParser()
+noteparser.add_argument('comments', type=str)
+
 
 api = Namespace('Users', description='Operations related to users')
 
@@ -67,6 +70,12 @@ class UserDAO(object):
         a_user = Users.query.filter_by(id=user_id).first()
         return a_user
 
+    def update_notes(self, id, updated_notes):
+        old_record = self.get_a_user(id)
+        old_record.comments = updated_notes['commments']
+        db.session.commit()
+
+
     def update(self, id, updated_user):
         old_record = self.get_a_user(id)
         if not old_record:
@@ -77,11 +86,20 @@ class UserDAO(object):
         old_record.email = updated_user['email']
         db.session.commit()
 
+
     def delete(self, id):
         deleted_user = self.get_a_user(id)
         if not deleted_user:
             api.abort(404)
         db.session.delete(deleted_user)
+        db.session.commit()
+
+
+    def delete_notes(self, id):
+        a_user = self.get_a_user(id)
+        if not a_user:
+            api.abort(404)
+        a_user.comments = ""
         db.session.commit()
 
 DAO = UserDAO()
@@ -133,4 +151,36 @@ class UserOperations(Resource):
     def delete(self, id):
         '''Deletes a user'''
         DAO.delete(id)
+        return 'sucess', 200
+
+
+
+
+@api.route('/notes/<int:id>')
+class UserOperations(Resource):
+    @api.response(200, 'notes successfully obtained')
+    @api.response(404, 'Could not get notes')
+    def get(self, id):
+        '''Return a certain user's notes'''
+        user = DAO.get_a_user(id)
+        comments = user.comments
+        if not comments:
+            api.abort(404)
+        else:
+            return comments, 200
+
+    @api.response(200, 'notes successfully updated.')
+    @api.response(404, 'Could not update notes')
+    @api.expect(noteparser)
+    def put(self, id):
+        ''' Updates a current user's book notes'''
+        updated_notes = noteparser.parse_args()
+        DAO.update_notes(id, updated_notes)
+        return 'sucess', 200
+
+    @api.response(200, 'notes successfully deleted.')
+    @api.response(404, 'notes could not be deleted')
+    def delete(self, id):
+        '''Deletes a book'''
+        DAO.delete_notes(id)
         return 'sucess', 200
