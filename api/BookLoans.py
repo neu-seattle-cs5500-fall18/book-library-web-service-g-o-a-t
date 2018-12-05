@@ -235,7 +235,7 @@ class RemindUsers(Resource):
         users = []
         counter = 0
         for x in all_loans:
-            if x['return_date'] > range:
+            if (x['return_date'] is None) and x['return_date'] > range:
                 Mailer.mail_this(UserDAO.get_a_user(x['loaner_id']))
                 counter = counter + 1
                 users.append(x['loaner_id'])
