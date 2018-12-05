@@ -43,6 +43,15 @@ class NotesDAO(object):
         all_notes = NotesDbModel.query.all()
         return self.to_dic(all_notes)
 
+    def get_notes_by_user(self, user_id):
+        all_notes = NotesDbModel.query.filter_by(user_id=user_id)
+        return self.to_dic(all_notes)
+
+    def get_notes_by_book(self, book_id):
+        all_notes = NotesDbModel.query.filter_by(book_id=book_id)
+        return self.to_dic(all_notes)
+
+
     def store(self, new_note):
         while db.session.query(NotesDbModel.id).filter_by(id=self.counter).scalar() is not None:
             self.counter = self.counter + 1
@@ -92,30 +101,30 @@ class NoteController(Resource):
 
 @api.route('/<int:note_id>')
 class UserOperations(Resource):
-    @api.response(200, 'User successfully obtained')
-    @api.response(404, 'Could not get that specific user')
+    @api.response(200, 'note successfully obtained')
+    @api.response(404, 'Could not get that specific note')
     @api.marshal_with(notes_api_model)
     def get(self, note_id):
-        '''Return a certain user by id'''
+        '''Return a certain note by id'''
         note = DAO.get_a_note(note_id)
         if not note:
             api.abort(404)
         else:
             return note, 200
 
-    @api.response(200, 'User successfully updated.')
-    @api.response(404, 'Could not update current user')
+    @api.response(200, 'note successfully updated.')
+    @api.response(404, 'Could not update current note')
     @api.expect(noteparser)
     def put(self, note_id):
-        ''' Updates a current user'''
+        ''' Updates a current note'''
         updated_note = noteparser.parse_args()
         DAO.update(note_id, updated_note)
         return 'sucess', 200
 
-    @api.response(200, 'User successfully deleted.')
-    @api.response(404, 'User could not be deleted')
+    @api.response(200, 'note successfully deleted.')
+    @api.response(404, 'note could not be deleted')
     def delete(self, note_id):
-        '''Deletes a user'''
+        '''Deletes a note'''
         DAO.delete(note_id)
         return 'sucess', 200
 

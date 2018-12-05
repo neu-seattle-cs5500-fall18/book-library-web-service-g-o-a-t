@@ -8,9 +8,6 @@ parser.add_argument('comments', type=str)
 parser.add_argument('email', type=str)
 parser.add_argument('notes', type=str)
 
-noteparser = reqparse.RequestParser()
-noteparser.add_argument('comments', type=str)
-
 
 api = Namespace('Users', description='Operations related to users')
 
@@ -32,13 +29,14 @@ class Users(db.Model):
     email = db.Column(db.String(80))
 
 
+notes = []
 # User class
 class User(object):
-    def __init__(self, id, name, comments, email):
+    def __init__(self, id, name, notes, email):
         self.id = id
         self.name = name
         self.notified = False
-        self.comments = comments
+        self.notes = notes
         self.email = email
 
 
@@ -170,18 +168,3 @@ class UserOperations(Resource):
         else:
             return comments, 200
 
-    @api.response(200, 'notes successfully updated.')
-    @api.response(404, 'Could not update notes')
-    @api.expect(noteparser)
-    def put(self, id):
-        ''' Updates a current user's book notes'''
-        updated_notes = noteparser.parse_args()
-        DAO.update_notes(id, updated_notes)
-        return 'sucess', 200
-
-    @api.response(200, 'notes successfully deleted.')
-    @api.response(404, 'notes could not be deleted')
-    def delete(self, id):
-        '''Deletes notes from a user'''
-        DAO.delete_notes(id)
-        return 'sucess', 200
