@@ -24,7 +24,7 @@ notes_api_model = api.model("Notes", {
 class NotesDbModel (db.Model):
     book_id = db.Column(db.Integer)
     user_id = db.Column(db.Integer)
-    notes_id = db.Column(db.Integer)
+    notes_id = db.Column(db.Integer, primary_key=True)
     notes = db.Column(db.String(100))
 
 
@@ -72,13 +72,10 @@ class NotesDAO(object):
         db.session.commit()
 
 
-#parser to make a book
-parser = reqparse.RequestParser()
-parser.add_argument('title', required=False)
-parser.add_argument('author', required=False)
-parser.add_argument('genre', required=False)
-parser.add_argument('year_released', required=False)
-parser.add_argument('user_notes', required=False)
+#parser to get a note
+noteparser = reqparse.RequestParser()
+noteparser.add_argument('note_id', required=True)
+
 
 
 DAO = NotesDAO()
@@ -90,6 +87,7 @@ class NoteController(Resource):
     @api.response(404, 'Could not get list of notes')
     def get(self):
         '''Return a list of all notes'''
+        return DAO.get_all_notes(), 202
 
 
 @api.route('/<int:note_id>')
@@ -107,18 +105,18 @@ class UserOperations(Resource):
 
     @api.response(200, 'User successfully updated.')
     @api.response(404, 'Could not update current user')
-    @api.expect(parser)
-    def put(self, id):
+    @api.expect(noteparser)
+    def put(self, note_id):
         ''' Updates a current user'''
-        a_updated_user = parser.parse_args()
-        DAO.update(id, a_updated_user)
+        updated_note = noteparser.parse_args()
+        DAO.update(note_id, updated_note)
         return 'sucess', 200
 
     @api.response(200, 'User successfully deleted.')
     @api.response(404, 'User could not be deleted')
-    def delete(self, id):
+    def delete(self, note_id):
         '''Deletes a user'''
-        DAO.delete(id)
+        DAO.delete(note_id)
         return 'sucess', 200
 
 
