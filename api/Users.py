@@ -4,8 +4,8 @@ from api.SharedModel import db
 
 parser = reqparse.RequestParser()
 parser.add_argument('name', type=str)
-parser.add_argument('deleted', type=bool)
 parser.add_argument('comments', type=str)
+parser.add_argument('email', type=str)
 
 
 api = Namespace('Users', description='Operations related to users')
