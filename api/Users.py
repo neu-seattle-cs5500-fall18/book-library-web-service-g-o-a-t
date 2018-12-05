@@ -1,11 +1,12 @@
 from flask import Flask, request
-from flask_restplus import Namespace, Resource, fields, reqparse
+from flask_restplus import Namespace, Resource, fields, reqparse, inputs
 from api.SharedModel import db
 
 parser = reqparse.RequestParser()
 parser.add_argument('name', type=str)
-parser.add_argument('deleted', type=bool)
+parser.add_argument('deleted', type=inputs.boolean)
 parser.add_argument('comments', type=str)
+parser.add_argument('email', type=str)
 
 noteparser = reqparse.RequestParser()
 noteparser.add_argument('comments', type=str)
@@ -161,7 +162,7 @@ class UserOperations(Resource):
     @api.response(200, 'notes successfully obtained')
     @api.response(404, 'Could not get notes')
     def get(self, id):
-        '''Return a certain user's notes'''
+        '''Return a  users notes'''
         user = DAO.get_a_user(id)
         comments = user.comments
         if not comments:
@@ -181,6 +182,6 @@ class UserOperations(Resource):
     @api.response(200, 'notes successfully deleted.')
     @api.response(404, 'notes could not be deleted')
     def delete(self, id):
-        '''Deletes a book'''
+        '''Deletes notes from a user'''
         DAO.delete_notes(id)
         return 'sucess', 200
