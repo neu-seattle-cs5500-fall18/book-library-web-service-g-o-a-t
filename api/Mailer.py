@@ -1,15 +1,8 @@
 from flask_mail import Mail, Message
 
-mail_settings = {
-    "MAIL_SERVER": 'smtp.gmail.com',
-    "MAIL_PORT": 465,
-    "MAIL_USE_TLS": False,
-    "MAIL_USE_SSL": True,
-    "MAIL_USERNAME": 'iheartjewart@gmail.com',
-    "MAIL_PASSWORD": 'monishnaidu'
-}
 
-class Mailer:
+
+class Mailer(object):
     def __init__(self, app):
         self.app = app
         self.app.config.update(mail_settings)

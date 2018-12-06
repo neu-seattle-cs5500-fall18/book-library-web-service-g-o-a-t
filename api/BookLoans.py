@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, abort
 from flask_restplus import Api, Resource, marshal, fields, Namespace, reqparse
+from flask_mail import Mail, Message
 from api.SharedModel import db
 import datetime
 from api.Books import BookDAO
@@ -7,6 +8,18 @@ from api.Books import BookDbModel
 from api.Users import Users, UserDAO
 from api.Mailer import Mailer
 from datetime import time, datetime, date, timedelta
+from teamgoat import app
+
+
+mail = Mail(app.app)
+
+app.app.config['MAIL_SERVER']='smtp.gmail.com'
+app.app.config['MAIL_PORT'] = 465
+app.app.config['MAIL_USERNAME'] = 'iheartjewart@gmail.com'
+app.app.config['MAIL_PASSWORD'] = 'monishnaidu'
+app.app.config['MAIL_USE_TLS'] = False
+app.app.config['MAIL_USE_SSL'] = True
+mail = Mail(app.app)
 
 api = Namespace('BookLoans', description='Operations related to book loans')
 
@@ -155,6 +168,8 @@ class Checkout_DAO(BookDAO):
 
 DAO = loan_DAO()
 DAO_checkout = Checkout_DAO()
+# mail = Mail(app)
+# mail = Mail(app)
 
 
 @api.response(202, 'Book Loans successfully retrieved')
@@ -225,18 +240,20 @@ class ReturnBook(Resource):
         DAO_checkout.return_a_book(a_updated_loan['user_id'], a_updated_loan['book_id'], loan_id)
         return 'sucess', 200
 
-@api.route('/due/<int:due_in_x_days>')
+#@api.route('/due/<int:due_in_x_days>')
+@api.route('/hello')
 class RemindUsers(Resource):
-    @api.response(200, 'Reminder emails sent')
-    @api.response(404, 'error reminding users')
-    @api.expect(parser)
-    def get(self, due_in_x_days):
-        today = datetime.now()
-        range = today + timedelta(days=due_in_x_days)
-        all_loans = DAO.retrieve_all_loans()
-        users = []
-        counter = 0
-        for cur_loan in all_loans:
+    #@api.response(200, 'Reminder emails sent')
+    #@api.response(404, 'error reminding users')
+    #@api.expect(parser)
+    def get(self):
+        # today = datetime.now()
+        # range = today + timedelta(days=due_in_x_days)
+        # all_loans = DAO.retrieve_all_loans()
+        # users = []
+        # counter = 0
+
+        '''for cur_loan in all_loans:
             if(cur_loan['return_date'] != '' and cur_loan['return_date'] is not None):
                 book_due_date = datetime.strptime(cur_loan['return_date'], '%Y-%m-%d %H:%M:%S.%f')
                 if  book_due_date < range:
@@ -246,11 +263,12 @@ class RemindUsers(Resource):
                     email = whole_user['email']
                     Mailer.mail_this(email)
                     counter = counter + 1
-                    users.append(cur_loan['loaner_id'])
+                    users.append(cur_loan['loaner_id'])'''
+
+        msg = Message('Book is due soon', sender = 'iheartjewart@gmail.com', recipients = ['brian.sun.lam@gmail.com'])
+        msg.body = "book due in "
+        mail.send(msg) #this breaks the api
+        return "Message sent", 200
 
 
 
-
-
-
-        return "sent " + counter + " emails, to " + users, 200
