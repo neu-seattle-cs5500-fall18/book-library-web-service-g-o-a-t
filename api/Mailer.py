@@ -1,13 +1,12 @@
 from flask_mail import Mail, Message
-import os
 
 mail_settings = {
     "MAIL_SERVER": 'smtp.gmail.com',
     "MAIL_PORT": 465,
     "MAIL_USE_TLS": False,
     "MAIL_USE_SSL": True,
-    "MAIL_USERNAME": os.environ['iheartjewart@gmail.com'],
-    "MAIL_PASSWORD": os.environ['monishnaidu']
+    "MAIL_USERNAME": 'iheartjewart@gmail.com',
+    "MAIL_PASSWORD": 'monishnaidu'
 }
 
 class Mailer:

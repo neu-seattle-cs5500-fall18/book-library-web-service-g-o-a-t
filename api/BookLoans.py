@@ -6,6 +6,7 @@ from api.Books import BookDAO
 from api.Books import BookDbModel
 from api.Users import Users, UserDAO
 from api.Mailer import Mailer
+from datetime import time, datetime, date, timedelta
 
 api = Namespace('BookLoans', description='Operations related to book loans')
 
@@ -35,8 +36,8 @@ class loans(db.Model):
     loan_id = db.Column(db.Integer, primary_key=True)
     book_id = db.Column(db.Integer)
     loaner_id = db.Column(db.Integer, db.ForeignKey(Users.id))
-    checkout_date = db.Column(db.DateTime, default = datetime.datetime.utcnow)
-    return_date = db.Column(db.DateTime, default = datetime.datetime.utcnow)
+    checkout_date = db.Column(db.DateTime, default = datetime.utcnow)
+    return_date = db.Column(db.DateTime, default = datetime.utcnow)
     comments = db.Column(db.String, default = "")
 
 # Book_Loan class
@@ -183,7 +184,8 @@ class Book_Loan_Controller_Loan_ID(Resource):
         """Retrieves a single loan from a loan id"""
         single_loan = DAO.retrieveOne(loan_id)
         if not single_loan:
-            abort(404, 'Invalid Loan ID')
+            #return "No loan exists under id number " + "loan_id", 404
+            abort(404, "Invalid Loan ID")
         else:
             return single_loan, 200
 
@@ -223,22 +225,28 @@ class ReturnBook(Resource):
         DAO_checkout.return_a_book(a_updated_loan['user_id'], a_updated_loan['book_id'], loan_id)
         return 'sucess', 200
 
-@api.route('/<int:due_in_x_days>')
+@api.route('/due/<int:due_in_x_days>')
 class RemindUsers(Resource):
     @api.response(200, 'Reminder emails sent')
     @api.response(404, 'error reminding users')
     @api.expect(parser)
-    def get(self, days_due):
-        today = datetime.datetime.today().strftime('%Y-%m-%d')
-        range = today + datetime.timedelta(days=days_due)
+    def get(self, due_in_x_days):
+        today = datetime.now()
+        range = today + timedelta(days=due_in_x_days)
         all_loans = DAO.retrieve_all_loans()
         users = []
         counter = 0
-        for x in all_loans:
-            if (x['return_date'] is None) and x['return_date'] > range:
-                Mailer.mail_this(UserDAO.get_a_user(x['loaner_id']))
-                counter = counter + 1
-                users.append(x['loaner_id'])
+        for cur_loan in all_loans:
+            if(cur_loan['return_date'] != '' and cur_loan['return_date'] is not None):
+                book_due_date = datetime.strptime(cur_loan['return_date'], '%Y-%m-%d %H:%M:%S.%f')
+                if  book_due_date < range:
+                    user_id = int(cur_loan['loaner_id'])
+                    print(user_id)
+                    whole_user = UserDAO.get_a_user(user_id)
+                    email = whole_user['email']
+                    Mailer.mail_this(email)
+                    counter = counter + 1
+                    users.append(cur_loan['loaner_id'])
 
 
 
