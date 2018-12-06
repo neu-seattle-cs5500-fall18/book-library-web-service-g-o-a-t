@@ -7,7 +7,7 @@ parser = reqparse.RequestParser()
 parser.add_argument('name', type=str)
 parser.add_argument('comments', type=str)
 parser.add_argument('email', type=str)
-parser.add_argument('notes', type=str)
+
 
 noteparser = reqparse.RequestParser()
 noteparser.add_argument('book_id', type=int)
@@ -23,6 +23,7 @@ user_model = api.model('User', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a user'),
     'name': fields.String(required=True, description='The name of a user'),
     'notified': fields.Boolean(required=False, description='deleted or not'),
+    'notified': fields.Boolean(required=False, description='notified or not'),
     'email': fields.String(required=True, description='The email associated with a user')
 })
 
@@ -38,7 +39,7 @@ class Users(db.Model):
 notes = []
 # User class
 class User(object):
-    def __init__(self, id, name, email):
+    def __init__(self, id, name, notified, email):
         self.id = id
         self.name = name
         self.notified = False
@@ -86,7 +87,7 @@ class UserDAO(object):
             api.abort(404)
         old_record.name = updated_user['name']
         old_record.notified = updated_user['notified']
-        old_record.comments = updated_user['comments']
+        old_record.deleted = updated_user['notified']
         old_record.email = updated_user['email']
         db.session.commit()
 
@@ -123,7 +124,7 @@ class UserCollection(Resource):
     def post(self):
         '''Creates a new user.'''
         data = parser.parse_args()
-        new_user = User(0, data['name'], data['comments'], data['email'])
+        new_user = User(0, data['name'], data['notified'], data['email'])
         DAO.store(new_user)
         return 'success', 202
 

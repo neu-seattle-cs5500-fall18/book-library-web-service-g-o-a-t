@@ -4,7 +4,8 @@ from api.SharedModel import db
 import datetime
 from api.Books import BookDAO
 from api.Books import BookDbModel
-from api.Users import Users
+from api.Users import Users, UserDAO
+from api.Mailer import Mailer
 
 api = Namespace('BookLoans', description='Operations related to book loans')
 
@@ -154,6 +155,7 @@ class Checkout_DAO(BookDAO):
 DAO = loan_DAO()
 DAO_checkout = Checkout_DAO()
 
+
 @api.response(202, 'Book Loans successfully retrieved')
 @api.response(404, "Book Loan not founded")
 @api.route('/')
@@ -227,7 +229,20 @@ class RemindUsers(Resource):
     @api.response(404, 'error reminding users')
     @api.expect(parser)
     def get(self, days_due):
+        today = datetime.datetime.today().strftime('%Y-%m-%d')
+        range = today + datetime.timedelta(days=days_due)
+        all_loans = DAO.retrieve_all_loans()
+        users = []
+        counter = 0
+        for x in all_loans:
+            if (x['return_date'] is None) and x['return_date'] > range:
+                Mailer.mail_this(UserDAO.get_a_user(x['loaner_id']))
+                counter = counter + 1
+                users.append(x['loaner_id'])
 
 
 
-        return None
+
+
+
+        return "sent " + counter + " emails, to " + users, 200
