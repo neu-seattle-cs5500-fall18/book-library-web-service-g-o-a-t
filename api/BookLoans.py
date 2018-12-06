@@ -5,7 +5,6 @@ import datetime
 from api.Books import BookDAO
 from api.Books import BookDbModel
 from api.Users import Users, UserDAO
-from api.Mailer import Mailer
 from flask_mail import Mail, Message
 
 api = Namespace('BookLoans', description='Operations related to book loans')
