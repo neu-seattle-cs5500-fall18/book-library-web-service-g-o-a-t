@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_restplus import Namespace, Resource, fields, reqparse, inputs
 from api.SharedModel import db
+from .Notes import Notes, NotesDAO
 
 parser = reqparse.RequestParser()
 parser.add_argument('name', type=str)
@@ -8,6 +9,13 @@ parser.add_argument('comments', type=str)
 parser.add_argument('email', type=str)
 parser.add_argument('notes', type=str)
 
+noteparser = reqparse.RequestParser()
+noteparser.add_argument('book_id', type=int)
+noteparser.add_argument('notes', type=str)
+
+deletenoteparser = reqparse.RequestParser()
+deletenoteparser.add_argument('note_id', type=str)
+Notes_DAO = NotesDAO()
 
 api = Namespace('Users', description='Operations related to users')
 
@@ -15,7 +23,6 @@ user_model = api.model('User', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a user'),
     'name': fields.String(required=True, description='The name of a user'),
     'notified': fields.Boolean(required=False, description='deleted or not'),
-    'comments': fields.String(required=True, description='comments about books?'),
     'email': fields.String(required=True, description='The email associated with a user')
 })
 
@@ -25,18 +32,16 @@ class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
     notified = db.Column(db.Boolean, default=False)
-    comments = db.Column(db.String(80))
     email = db.Column(db.String(80))
 
 
 notes = []
 # User class
 class User(object):
-    def __init__(self, id, name, notes, email):
+    def __init__(self, id, name, email):
         self.id = id
         self.name = name
         self.notified = False
-        self.notes = notes
         self.email = email
 
 
@@ -48,7 +53,7 @@ class UserDAO(object):
     def to_dic(self, sql_object):
         my_list = []
         for i in sql_object:
-            my_list.append({"id": i.id, "name": i.name, "notified": i.notified, "comments": i.comments, "email": i.email})
+            my_list.append({"id": i.id, "name": i.name, "notified": i.notified, "email": i.email})
         return my_list
 
     def get_all_users(self):
@@ -60,7 +65,7 @@ class UserDAO(object):
             self.counter = self.counter + 1
 
         new_user.id = self.counter
-        query = Users(id=new_user.id, name=new_user.name, notified=new_user.notified, comments=new_user.comments, email=new_user.email)
+        query = Users(id=new_user.id, name=new_user.name, notified=new_user.notified, email=new_user.email)
         db.session.add(query)
         db.session.commit()
         return new_user
@@ -102,7 +107,7 @@ class UserDAO(object):
         db.session.commit()
 
 DAO = UserDAO()
-
+Notes_DAO = NotesDAO()
 
 @api.response(202, 'users successfully obtained')
 @api.response(404, 'Could not find any users')
@@ -152,19 +157,62 @@ class UserOperations(Resource):
         DAO.delete(id)
         return 'sucess', 200
 
+    book_id_parser = reqparse.RequestParser()
+    book_id_parser.add_argument('book_id', type=int)
+    book_id_parser.add_argument('notes', type=str)
 
 
 
-@api.route('/notes/<int:id>')
-class UserOperations(Resource):
-    @api.response(200, 'notes successfully obtained')
-    @api.response(404, 'Could not get notes')
-    def get(self, id):
-        '''Return a  users notes'''
-        user = DAO.get_a_user(id)
-        comments = user.comments
-        if not comments:
-            api.abort(404)
-        else:
-            return comments, 200
+
+
+
+
+@api.route('/<int:user_id>/note')
+class UserNoteController(Resource):
+    @api.response(200, 'Users notes successfully created.')
+    @api.response(404, 'Users notes could not be created')
+    @api.expect(noteparser)
+    def post(self, user_id):
+        '''creates a note from a user about a book using a book id'''
+        data = noteparser.parse_args()
+        book_id = data['book_id']
+        notes = data['notes']
+        new_note = Notes(id=0,book_id=book_id, user_id=user_id, notes=notes)
+        Notes_DAO.store(new_note)
+        return 'sucess', 200
+
+    @api.response(200, 'Users notes successfully updated.')
+    @api.response(404, 'Users notes could not be updated')
+    @api.expect(noteparser)
+    def put(self, user_id):
+        '''updates a note by a user with a given book id'''
+        data = noteparser.parse_args()
+        book_id = data['book_id']
+        notes = data['notes']
+        new_note = Notes(id=0,book_id=book_id,user_id=user_id,notes= notes)
+        Notes_DAO.store(new_note)
+        return 'sucess', 200
+
+
+    @api.response(200, 'Notes successfully deleted')
+    @api.response(404, 'Users notes could not be deleted')
+    @api.expect(deletenoteparser)
+    def delete(self, user_id):
+        '''deletes a users note with a given note id'''
+        data = parser.parse_args()
+        note_id = data['note_id']
+        Notes_DAO.delete_by_user(user_id,note_id)
+        return 'sucess', 200
+
+
+@api.route('/<int:user_id>/NoteCollection')
+@api.response(202, 'Accepted')
+@api.response(404, 'Could not get a list of notes about the book')
+class NoteCollectionController(Resource):
+    def get(self, user_id):
+        '''
+        Returns list of notes by a specific user.
+        '''
+        return NotesDAO.get_notes_by_user(Notes_DAO,user_id), 202
+
 

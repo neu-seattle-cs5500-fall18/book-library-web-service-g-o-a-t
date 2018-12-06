@@ -5,26 +5,26 @@ api = Namespace('Notes', description='Operations related to specific users notes
 
 #Python notes class
 class Notes:
-    def __init__(self,book_id, user_id,notes_id, notes):
+    def __init__(self, id, book_id, user_id, notes):
+        self.id = id
         self.book_id = book_id
         self.user_id = user_id
-        self.notes_id = notes_id
         self.notes = notes
 
 
 #Notes API
 notes_api_model = api.model("Notes", {
+    'id': fields.Integer(description='Notes ID'),
     'book_id': fields.Integer(description='Book ID'),
     'user_id': fields.Integer(description='User ID'),
-    'notes_id': fields.Integer(description='Notes ID'),
     'notes': fields.String(description='notes from the user regarding the book'),
 })
 
 #Database model for notes
 class NotesDbModel (db.Model):
+    id = db.Column(db.Integer, primary_key=True)
     book_id = db.Column(db.Integer)
     user_id = db.Column(db.Integer)
-    notes_id = db.Column(db.Integer, primary_key=True)
     notes = db.Column(db.String(100))
 
 
@@ -36,7 +36,7 @@ class NotesDAO(object):
     def to_dic(self, sql_object):
         my_list = []
         for notes in sql_object:
-            my_list.append({"book_id": notes.book_id, "user_id": notes.book_id,"notes_id": notes.notes_id, "notes": notes.notes})
+            my_list.append({"id": notes.id, "book_id": notes.book_id, "user_id": notes.book_id, "notes": notes.notes})
         return my_list
 
     def get_all_notes(self):
@@ -57,7 +57,7 @@ class NotesDAO(object):
             self.counter = self.counter + 1
 
         new_note.id = self.counter
-        query = NotesDbModel(book_id= new_note.book_id, user_id=new_note.user_id, notes_id=new_note.notes_id ,notes= new_note.notes)
+        query = NotesDbModel(id=new_note.id, book_id=new_note.book_id, user_id=new_note.user_id, notes=new_note.notes)
         db.session.add(query)
         db.session.commit()
         return new_note
@@ -79,6 +79,17 @@ class NotesDAO(object):
             api.abort(404)
         db.session.delete(deleted_note)
         db.session.commit()
+
+    def delete_by_user(self, user_id, note_id):
+        deleted_note = self.get_a_note(note_id)
+        if not deleted_note:
+            api.abort(404, description= "that note id doesn't exist")
+        if deleted_note.user_id == user_id:
+            db.session.delete(deleted_note)
+            db.session.commit(0)
+        else:
+            api.abort(404, description= "could not delete a note from that specific user")
+
 
 
 #parser to get a note

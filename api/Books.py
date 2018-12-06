@@ -1,15 +1,10 @@
 from flask import Flask, request
 from flask_restplus import Resource, Namespace, fields, reqparse, inputs
 from .SharedModel import db
-from .Notes import NotesDbModel, Notes, NotesDAO
+from .Notes import NotesDAO
 api = Namespace('Books', description='Operations related to books')
 
 books = []
-
-
-
-
-
 
 # Api model
 book_api_model = api.model('Book', {
