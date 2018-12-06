@@ -4,7 +4,9 @@ from api.SharedModel import db
 import datetime
 from api.Books import BookDAO
 from api.Books import BookDbModel
-from api.Users import Users
+from api.Users import Users, UserDAO
+from api.Mailer import Mailer
+from flask_mail import Mail, Message
 
 api = Namespace('BookLoans', description='Operations related to book loans')
 
@@ -17,6 +19,7 @@ parser1.add_argument('book_id', type=int)
 parser1.add_argument('loaner_id', type=int)
 parser1.add_argument('checkout_date', type=str)
 parser1.add_argument('return_date', type=str)
+parser1.add_argument('due_date', type=str)
 parser1.add_argument('comments', type=str)
 
 
@@ -26,6 +29,7 @@ book_loan_model = api.model('loan', {
     'loaner_id': fields.Integer(readOnly=True, required=True, description= 'The unique identifier of the person associated with the loan'),
     'checkout_date': fields.String(readOnly=False, description='The date the book was checked out in YYYY/MM/DD format'),
     'return_date': fields.String(readOnly=False, description='The date the book should be returned in YYYY/MM/DD format'),
+    'due_date': fields.String(readOnly=False, description='The date the book is due in YYYY/MM/DD format'),
     'comments': fields.String(readOnly=False, description='Notes regarding this loan. Limit 100 chars')
 })
 
@@ -35,17 +39,19 @@ class loans(db.Model):
     book_id = db.Column(db.Integer)
     loaner_id = db.Column(db.Integer, db.ForeignKey(Users.id))
     checkout_date = db.Column(db.DateTime, default = datetime.datetime.utcnow)
-    return_date = db.Column(db.DateTime, default = datetime.datetime.utcnow)
+    return_date = db.Column(db.DateTime, default = None)
+    due_date = db.Column(db.DateTime, default = datetime.datetime.utcnow)
     comments = db.Column(db.String, default = "")
 
 # Book_Loan class
 class book_loan(object):
-    def __init__(self, loan_id, book_id, loaner_id, checkout_date, return_date, comments):
+    def __init__(self, loan_id, book_id, loaner_id, checkout_date, return_date, due_date, comments):
         self.loan_id = loan_id
         self.book_id = book_id
         self.loaner_id = loaner_id
         self.checkout_date = checkout_date
         self.return_date = return_date
+        self.due_date = due_date
         self.comments = comments
 
 # Book Loan DAO
@@ -57,12 +63,13 @@ class loan_DAO(object):
         list_loans = []
         for i in sql_object:
             list_loans.append({"loan_id": i.loan_id, "book_id": i.book_id, "loaner_id": i.loaner_id,
-                               "checkout_date": i.checkout_date, "return_date": i.return_date, "comments": i.comments})
+                               "checkout_date": i.checkout_date, "return_date": i.return_date, "due_date": i.due_date, "comments": i.comments})
         return list_loans
 
     def retrieve_all_loans(self):
         all_loans = loans.query.all()
-        return self.to_dic(all_loans)
+        # return self.to_dic(all_loans)
+        return all_loans
 
     def store(self, loan):
         while db.session.query(loans.loan_id).filter_by(loan_id = self.counter).scalar() is not None:
@@ -93,12 +100,12 @@ class loan_DAO(object):
         old_record.loaner_id = updated_loan['loaner_id']
         old_record.checkout_date = updated_loan['checkout_date']
         old_record.return_date = updated_loan['return_date']
+        old_record.due_date = updated_loan['due_date']
         old_record.comments = updated_loan['comments']
         db.session.commit()
         return "Book Loan " + str(loan_id) + " has been updated!"
 
     def delete(self, loan_id):
-
         loan_to_delete = loans.query.filter_by(loan_id=loan_id).first()
         db.session.delete(loan_to_delete)
         db.session.commit()
@@ -125,7 +132,7 @@ class Checkout_DAO(BookDAO):
             self.counter += 1
 
         new_loan_id = self.counter
-        db_loan = loans(loan_id = new_loan_id, book_id = book_id, loaner_id = user_id, return_date = "", comments = "check_out")
+        db_loan = loans(loan_id = new_loan_id, book_id = book_id, loaner_id = user_id, return_date = None, due_date = datetime.datetime.now() + datetime.timedelta(days=7), comments = "check_out")
         db.session.add(db_loan)
         db.session.commit()
 
@@ -141,12 +148,18 @@ class Checkout_DAO(BookDAO):
             if status == (False,):
                 self.update_status(book_id, True)
                 self.store_loan(user_id, book_id)
-
+            else:
+                api.abort(404, description = "book is not available")
+        else:
+            api.abort(404, description = "can't find user id or book id")
 
     def return_a_book(self, user_id, book_id, loan_id):
-        if self.get_loan(user_id, book_id, loan_id) is not None:
+        if self.get_loan(user_id, book_id, loan_id).return_date is None:
+            print(self.get_loan(user_id, book_id, loan_id).return_date)
             self.update_status(book_id, False)
             self.update_loan(user_id, book_id, loan_id)
+        else:
+            api.abort(404, description = "you either didn't provide valid ids or book has been returned already")
 
 
 
@@ -158,6 +171,7 @@ DAO_checkout = Checkout_DAO()
 @api.response(404, "Book Loan not founded")
 @api.route('/')
 class Book_Loan_Controller(Resource):
+    @api.marshal_with(book_loan_model)
     def get(self):
         """Returns all of the loans"""
         return DAO.retrieve_all_loans(), 202
@@ -168,7 +182,7 @@ class Book_Loan_Controller(Resource):
     def post(self):
         """Creates a new Book Loan"""
         data = parser1.parse_args()
-        new_book_loan = book_loan(0, data['book_id'], data['loaner_id'], data['checkout_date'], data['return_date'], data['comments'])
+        new_book_loan = book_loan(0, data['book_id'], data['loaner_id'], data['checkout_date'], data['return_date'], data['due_date'], data['comments'])
         DAO.store(new_book_loan)
         return 'Sucessfuly created new Book Loan', 202
 
@@ -220,14 +234,3 @@ class ReturnBook(Resource):
         a_updated_loan = parser.parse_args()
         DAO_checkout.return_a_book(a_updated_loan['user_id'], a_updated_loan['book_id'], loan_id)
         return 'sucess', 200
-
-@api.route('/<int:due_in_x_days>')
-class RemindUsers(Resource):
-    @api.response(200, 'Reminder emails sent')
-    @api.response(404, 'error reminding users')
-    @api.expect(parser)
-    def get(self, days_due):
-
-
-
-        return None
