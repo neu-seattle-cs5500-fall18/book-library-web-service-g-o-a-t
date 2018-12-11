@@ -138,5 +138,3 @@ class UserOperations(Resource):
         '''Deletes a note'''
         DAO.delete(note_id)
         return 'sucess', 200
-
-

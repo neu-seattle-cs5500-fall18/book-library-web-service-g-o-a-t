@@ -75,7 +75,7 @@ class BookDAO(object):
             self.counter = self.counter + 1
 
         new_book.id = self.counter
-        query = BookDbModel(title=new_book.title, author=new_book.author, id= new_book.id, genre=new_book.genre,year_released=new_book.year_released, checked_out= new_book.checked_out, user_notes=new_book.user_notes)
+        query = BookDbModel(title=new_book.title, author=new_book.author, id= new_book.id, genre=new_book.genre,year_released=new_book.year_released, checked_out= new_book.checked_out)
         db.session.add(query)
         db.session.commit()
         return new_book
@@ -142,7 +142,7 @@ class BooksCollection(Resource):
         Creates a new book.
         '''
         data = parser.parse_args()
-        new_book= Book(title=data['title'],author= data['author'],id= 0,genre= data['genre'],year_released=data['year_released'],checked_out=data['checked_out'],user_notes= data['user_notes'])
+        new_book= Book(title=data['title'],author= data['author'],id= 0,genre= data['genre'],year_released=data['year_released'],checked_out=data['checked_out'])
         DAO.store(new_book)
         return 'sucess', 202
 
@@ -173,7 +173,6 @@ class BookOperation(Resource):
     @api.expect(book_api_model)
     def put(self, id):
         '''
-
         Updates a book
         '''
         data = parser.parse_args()
@@ -195,7 +194,6 @@ class SearchController(Resource):
     @api.expect(parser)
     def get(self):
         '''
-
         An advanced search engine
         '''
         search = searchparser.parse_args()
@@ -233,4 +231,3 @@ class NoteCollectionController(Resource):
         Returns list of notes for a book.
         '''
         return NotesDAO.get_notes_by_book(Notes_DAO,id), 202
-

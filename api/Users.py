@@ -3,10 +3,11 @@ from flask_restplus import Namespace, Resource, fields, reqparse, inputs
 from api.SharedModel import db
 from .Notes import Notes, NotesDAO
 
-parser = reqparse.RequestParser()
-parser.add_argument('name', type=str)
-parser.add_argument('comments', type=str)
-parser.add_argument('email', type=str)
+userparser = reqparse.RequestParser()
+userparser.add_argument('name', type=str)
+userparser.add_argument('notified', type=inputs.boolean)
+userparser.add_argument('email', type=str)
+
 
 
 noteparser = reqparse.RequestParser()
@@ -22,7 +23,6 @@ api = Namespace('Users', description='Operations related to users')
 user_model = api.model('User', {
     'id': fields.Integer(readOnly=True, description='The unique identifier of a user'),
     'name': fields.String(required=True, description='The name of a user'),
-    'notified': fields.Boolean(required=False, description='deleted or not'),
     'notified': fields.Boolean(required=False, description='notified or not'),
     'email': fields.String(required=True, description='The email associated with a user')
 })
@@ -87,7 +87,7 @@ class UserDAO(object):
             api.abort(404)
         old_record.name = updated_user['name']
         old_record.notified = updated_user['notified']
-        old_record.deleted = updated_user['notified']
+        # old_record.deleted = updated_user['notified']
         old_record.email = updated_user['email']
         db.session.commit()
 
@@ -120,10 +120,10 @@ class UserCollection(Resource):
 
     @api.response(202, 'User successfully created')
     @api.response(404, 'Could not create a new user')
-    @api.expect(parser)
+    @api.expect(userparser)
     def post(self):
         '''Creates a new user.'''
-        data = parser.parse_args()
+        data = userparser.parse_args()
         new_user = User(0, data['name'], data['notified'], data['email'])
         DAO.store(new_user)
         return 'success', 202
@@ -144,10 +144,10 @@ class UserOperations(Resource):
 
     @api.response(200, 'User successfully updated.')
     @api.response(404, 'Could not update current user')
-    @api.expect(parser)
+    @api.expect(userparser)
     def put(self, id):
         ''' Updates a current user'''
-        a_updated_user = parser.parse_args()
+        a_updated_user = userparser.parse_args()
         DAO.update(id, a_updated_user)
         return 'sucess', 200
 
@@ -215,5 +215,3 @@ class NoteCollectionController(Resource):
         Returns list of notes by a specific user.
         '''
         return NotesDAO.get_notes_by_user(Notes_DAO,user_id), 202
-
-
