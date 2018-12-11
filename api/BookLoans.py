@@ -5,7 +5,9 @@ import datetime
 from api.Books import BookDAO
 from api.Books import BookDbModel
 from api.Users import Users, UserDAO
+
 from flask_mail import Mail, Message
+
 
 api = Namespace('BookLoans', description='Operations related to book loans')
 
@@ -166,6 +168,7 @@ class Checkout_DAO(BookDAO):
 DAO = loan_DAO()
 DAO_checkout = Checkout_DAO()
 
+
 @api.response(202, 'Book Loans successfully retrieved')
 @api.response(404, "Book Loan not founded")
 @api.route('/')
@@ -233,3 +236,4 @@ class ReturnBook(Resource):
         a_updated_loan = parser.parse_args()
         DAO_checkout.return_a_book(a_updated_loan['user_id'], a_updated_loan['book_id'], loan_id)
         return 'sucess', 200
+

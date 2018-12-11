@@ -9,6 +9,7 @@ userparser.add_argument('notified', type=inputs.boolean)
 userparser.add_argument('email', type=str)
 
 
+
 noteparser = reqparse.RequestParser()
 noteparser.add_argument('book_id', type=int)
 noteparser.add_argument('notes', type=str)
