@@ -96,13 +96,19 @@ class loan_DAO(object):
 
     def update(self, loan_id, updated_loan):
         old_record = self.retrieveOne(loan_id)
-        old_record.loan_id = updated_loan['loan_id']
-        old_record.book_id = updated_loan['book_id']
-        old_record.loaner_id = updated_loan['loaner_id']
-        old_record.checkout_date = updated_loan['checkout_date']
-        old_record.return_date = updated_loan['return_date']
-        old_record.due_date = updated_loan['due_date']
-        old_record.comments = updated_loan['comments']
+        # old_record.loan_id = updated_loan['loan_id']
+        if updated_loan['book_id'] is not None:
+            old_record.book_id = updated_loan['book_id']
+        if updated_loan['loaner_id'] is not None:
+            old_record.loaner_id = updated_loan['loaner_id']
+        if updated_loan['checkout_date'] is not None:
+            old_record.checkout_date = updated_loan['checkout_date']
+        if updated_loan['return_date'] is not None:   
+            old_record.return_date = updated_loan['return_date']
+        if updated_loan['due_date'] is not None:
+            old_record.due_date = updated_loan['due_date']
+        if updated_loan['comments'] is not None:
+            old_record.comments = updated_loan['comments']
         db.session.commit()
         return "Book Loan " + str(loan_id) + " has been updated!"
 
@@ -182,7 +188,7 @@ class Book_Loan_Controller(Resource):
     @api.response(404, 'Error creating new Book Loan')
     @api.expect(parser1)
     def post(self):
-        """Creates a new Book Loan"""
+        """Creates a new Book Loan (Optional method to manualy create loan if needed)"""
         data = parser1.parse_args()
         new_book_loan = book_loan(0, data['book_id'], data['loaner_id'], data['checkout_date'], data['return_date'], data['due_date'], data['comments'])
         DAO.store(new_book_loan)
@@ -200,6 +206,15 @@ class Book_Loan_Controller_Loan_ID(Resource):
             abort(404, 'Invalid Loan ID')
         else:
             return single_loan, 200
+
+    @api.response(200, 'Book Loan successfully updated')
+    @api.response(404, 'Could not update current loan')
+    @api.expect(parser1)
+    def put(self, loan_id):
+        '''Updates a current loan (Optional method to manualy update loan if needed)'''
+        a_updated_loan = parser1.parse_args()
+        DAO.update(loan_id, a_updated_loan)
+        return 'sucess', 200       
 
     @api.response(200, "Book Loan successfully deleted")
     @api.response(404, "Unable to delete Book Loan")

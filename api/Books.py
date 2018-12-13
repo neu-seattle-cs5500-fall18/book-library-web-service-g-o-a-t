@@ -88,12 +88,16 @@ class BookDAO(object):
         old_book = self.get_a_book(book_id)
         if not old_book:
             api.abort(404)
-
-        old_book.title = updated_book['title']
-        old_book.author = updated_book['author']
-        old_book.genre = updated_book['genre']
-        old_book.year_released = updated_book['year_released']
-        old_book.checked_out = updated_book['checked_out']
+        if updated_book['title'] is not None:
+            old_book.title = updated_book['title']
+        if updated_book['author'] is not None:
+            old_book.author = updated_book['author']
+        if updated_book['genre'] is not None:
+            old_book.genre = updated_book['genre']
+        if updated_book['year_released']:
+            old_book.year_released = updated_book['year_released']
+        if updated_book['checked_out']:
+            old_book.checked_out = updated_book['checked_out']
         db.session.commit()
 
     def delete(self, book_id):
@@ -170,7 +174,7 @@ class BookOperation(Resource):
 
     @api.response(404, "could not update book")
     @api.response(202, 'Book successfully updated')
-    @api.expect(book_api_model)
+    @api.expect(parser)
     def put(self, id):
         '''
         Updates a book

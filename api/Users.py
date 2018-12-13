@@ -85,10 +85,12 @@ class UserDAO(object):
         old_record = self.get_a_user(id)
         if not old_record:
             api.abort(404)
-        old_record.name = updated_user['name']
-        old_record.notified = updated_user['notified']
-        # old_record.deleted = updated_user['notified']
-        old_record.email = updated_user['email']
+        if updated_user['name'] is not None:
+            old_record.name = updated_user['name']
+        if updated_user['notified'] is not None:
+            old_record.notified = updated_user['notified']
+        if updated_user['email'] is not None:
+            old_record.email = updated_user['email']
         db.session.commit()
 
 
