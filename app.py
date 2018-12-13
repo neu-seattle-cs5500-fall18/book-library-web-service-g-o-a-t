@@ -31,16 +31,17 @@ book_DAO = BookDAO()
 @loans_api.route('/send reminder')
 class Reminder(Resource):
     def get(self):
-    	for loan in loan_DAO.retrieve_all_loans():
-    		if loan.return_date is None:
-    			a_user = user_DAO.get_a_user(loan.loaner_id)
-    			a_user.notified = True
-    			db.session.commit()
-    			a_book = book_DAO.get_a_book(loan.book_id)
-    			msg = Message('Dear ' + a_user.name, sender = 'iheartjewart@gmail.com', recipients = [a_user.email])
-    			msg.body = "Just a reminder you checked out "+ a_book.title + " on " + str(loan.checkout_date) + ", you need to return your book by " + str(loan.due_date)
-    			mail.send(msg)
-    	return "Sent"
+        """Send e-mail reminders to loaners"""
+        for loan in loan_DAO.retrieve_all_loans():
+            if loan.return_date is None:
+                a_user = user_DAO.get_a_user(loan.loaner_id)
+                a_user.notified = True
+                db.session.commit()
+                a_book = book_DAO.get_a_book(loan.book_id)
+                msg = Message('Dear ' + a_user.name, sender = 'iheartjewart@gmail.com', recipients = [a_user.email])
+                msg.body = "Just a reminder you checked out "+ a_book.title + " on " + str(loan.checkout_date) + ", you need to return your book by " + str(loan.due_date)
+                mail.send(msg)
+        return "emails Sent"
 
 
 

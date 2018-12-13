@@ -84,9 +84,11 @@ class ListDAO(object):
 
     def update(self, a_list_id, updated_list):
         old_record = self.get_a_list(a_list_id)
-        old_record.list_name = updated_list['list_name']
-        self.validate_book_ids(updated_list['book_ids'])
-        old_record.book_ids = updated_list['book_ids']
+        if updated_list['list_name'] is not None:
+            old_record.list_name = updated_list['list_name']
+        if updated_list['book_ids'] is not None:
+            self.validate_book_ids(updated_list['book_ids'])
+            old_record.book_ids = updated_list['book_ids']
         db.session.commit()
 
     def delete(self, a_list_id):
