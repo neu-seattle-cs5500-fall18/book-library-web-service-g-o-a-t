@@ -73,7 +73,7 @@ class NotesDAO(object):
         old_note = self.get_a_note(note_id)
         print(old_note.id)
         if not old_note:
-            api.abort(404)
+            api.abort(404, description = 'Could not update current note')
         if updated_note['book_id'] is not None:
             old_note.book_id = updated_note['book_id']
         print(updated_note['user_id'])
@@ -87,19 +87,19 @@ class NotesDAO(object):
     def delete(self, note_id):
         deleted_note = self.get_a_note(note_id)
         if not deleted_note:
-            api.abort(404)
+            api.abort(404, description='note could not be deleted')
         db.session.delete(deleted_note)
         db.session.commit()
 
     def delete_by_user(self, user_id, note_id):
         deleted_note = self.get_a_note(note_id)
         if not deleted_note:
-            api.abort(404, description= "that note id doesn't exist")
+            api.abort(404, description="that note id doesn't exist")
         if deleted_note.user_id == user_id:
             db.session.delete(deleted_note)
             db.session.commit()
         else:
-            api.abort(404, description= "could not delete a note from that specific user")
+            api.abort(404, description="could not delete a note from that specific user")
 
 
 
@@ -132,22 +132,22 @@ class UserOperations(Resource):
         '''Return a certain note by id'''
         note = DAO.get_a_note(note_id)
         if not note:
-            api.abort(404)
+            api.abort(404, description = 'Could not get that specific note')
         else:
             return note, 200
 
-    @api.response(200, 'note successfully updated.')
+    @api.response(200, 'note successfully updated')
     @api.response(404, 'Could not update current note')
     @api.expect(noteparser)
     def put(self, note_id):
         ''' Updates a current note'''
         updated_note = noteparser.parse_args()
         DAO.update(note_id, updated_note)
-        return 'sucess', 200
+        return 'note successfully updated', 200
 
-    @api.response(200, 'note successfully deleted.')
+    @api.response(200, 'note successfully deleted')
     @api.response(404, 'note could not be deleted')
     def delete(self, note_id):
         '''Deletes a note'''
         DAO.delete(note_id)
-        return 'sucess', 200
+        return 'note successfully deleted', 200
