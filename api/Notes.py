@@ -4,7 +4,7 @@ from .SharedModel import db
 api = Namespace('Notes', description='Operations related to specific users notes')
 
 #Python notes class
-class Notes:
+class Notes(object):
     def __init__(self, id, book_id, user_id, notes):
         self.id = id
         self.book_id = book_id
@@ -36,7 +36,7 @@ class NotesDAO(object):
     def to_dic(self, sql_object):
         my_list = []
         for notes in sql_object:
-            my_list.append({"id": notes.id, "book_id": notes.book_id, "user_id": notes.book_id, "notes": notes.notes})
+            my_list.append({"id": notes.id, "book_id": notes.book_id, "user_id": notes.user_id, "notes": notes.notes})
         return my_list
 
     def get_all_notes(self):
@@ -51,7 +51,9 @@ class NotesDAO(object):
         all_notes = NotesDbModel.query.filter_by(book_id=book_id)
         return self.to_dic(all_notes)
 
-
+    def get_notes_only(self, book_id):
+        note = NotesDbModel.query.with_entities(NotesDbModel.user_id, NotesDbModel.notes).filter_by(book_id=book_id).all()
+        return note
     def store(self, new_note):
         while db.session.query(NotesDbModel.id).filter_by(id=self.counter).scalar() is not None:
             self.counter = self.counter + 1
@@ -68,9 +70,17 @@ class NotesDAO(object):
 
     def update(self, note_id, updated_note):
         old_note = self.get_a_note(note_id)
+        print(old_note.id)
         if not old_note:
             api.abort(404)
-        old_note.notes = updated_note['notes']
+        if updated_note['book_id'] is not None:
+            old_note.book_id = updated_note['book_id']
+        print(updated_note['user_id'])
+        if updated_note['user_id'] is not None:
+            old_note.user_id = updated_note['user_id']
+        if updated_note['notes'] is not None:
+            old_note.notes = updated_note['notes']
+        print(updated_note['user_id'])
         db.session.commit()
 
     def delete(self, note_id):
@@ -94,7 +104,9 @@ class NotesDAO(object):
 
 #parser to get a note
 noteparser = reqparse.RequestParser()
-noteparser.add_argument('note_id', required=True)
+noteparser.add_argument('book_id', type=int)
+noteparser.add_argument('user_id', type=int)
+noteparser.add_argument('notes', type=str)
 
 
 
