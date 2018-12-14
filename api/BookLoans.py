@@ -130,6 +130,8 @@ class Checkout_DAO(BookDAO):
 
     def get_loan(self, user_id, book_id, loan_id):
         loan = loans.query.filter_by(book_id = book_id, loaner_id = user_id, loan_id = loan_id).first()
+        if not loan:
+            api.abort(404, description = "Book Loan not founded")
         return loan
 
     def store_loan(self, user_id, book_id):
@@ -137,7 +139,7 @@ class Checkout_DAO(BookDAO):
             self.counter += 1
 
         new_loan_id = self.counter
-        db_loan = loans(loan_id = new_loan_id, book_id = book_id, loaner_id = user_id, return_date = None, due_date = datetime.datetime.now() + datetime.timedelta(days=7), comments = "check_out")
+        db_loan = loans(loan_id = new_loan_id, book_id = book_id, loaner_id = user_id, checkout_date = datetime.datetime.now(), return_date = None, due_date = datetime.datetime.now() + datetime.timedelta(days=7), comments = "check_out")
         db.session.add(db_loan)
         db.session.commit()
 
@@ -160,7 +162,6 @@ class Checkout_DAO(BookDAO):
 
     def return_a_book(self, user_id, book_id, loan_id):
         if self.get_loan(user_id, book_id, loan_id).return_date is None:
-            print(self.get_loan(user_id, book_id, loan_id).return_date)
             self.update_status(book_id, False)
             self.update_loan(user_id, book_id, loan_id)
         else:
@@ -201,7 +202,7 @@ class Book_Loan_Controller_Loan_ID(Resource):
         """Retrieves a single loan from a loan id"""
         single_loan = DAO.retrieveOne(loan_id)
         if not single_loan:
-            abort(404, description = 'Unable to retrieve book loan')
+            abort(404, description = 'cannot find this loan_id')
         else:
             return single_loan, 200
 
@@ -220,7 +221,7 @@ class Book_Loan_Controller_Loan_ID(Resource):
         """Deletes a Book Loan"""
         loan_to_delete = DAO.retrieveOne(loan_id)
         if not loan_to_delete:
-            abort(404, description = "Unable to delete Book Loan")
+            abort(404, description = "cannot find this loan_id")
 
         DAO.delete(loan_id)
         return "Book Loan " + str(loan_id) + " has been deleted", 200

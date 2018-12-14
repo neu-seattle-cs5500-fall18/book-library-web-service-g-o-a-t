@@ -71,17 +71,14 @@ class NotesDAO(object):
 
     def update(self, note_id, updated_note):
         old_note = self.get_a_note(note_id)
-        print(old_note.id)
         if not old_note:
             api.abort(404, description = 'Could not update current note')
         if updated_note['book_id'] is not None:
             old_note.book_id = updated_note['book_id']
-        print(updated_note['user_id'])
         if updated_note['user_id'] is not None:
             old_note.user_id = updated_note['user_id']
         if updated_note['notes'] is not None:
             old_note.notes = updated_note['notes']
-        print(updated_note['user_id'])
         db.session.commit()
 
     def delete(self, note_id):
