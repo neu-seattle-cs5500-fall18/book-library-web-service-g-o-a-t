@@ -21,7 +21,6 @@ updatenoteparser.add_argument('notes', type=str)
 
 deletenoteparser = reqparse.RequestParser()
 deletenoteparser.add_argument('note_id', type=int, required = True)
-# Notes_DAO = NotesDAO()
 
 api = Namespace('Users', description='Operations related to users')
 
@@ -41,7 +40,6 @@ class Users(db.Model):
     email = db.Column(db.String(80))
 
 
-notes = []
 # User class
 class User(object):
     def __init__(self, id, name, notified, email):
@@ -89,8 +87,7 @@ class UserDAO(object):
     def update_notes(self, user_id, updated_notes):
         old_record = NotesDbModel.query.filter_by(id=updated_notes['note_id'], user_id=user_id, book_id=updated_notes['book_id']).first()
         if not old_record:
-            api.abort(404)
-        # old_record = self.get_a_user(id)
+            api.abort(404, description = "Users notes could not be updated")
         old_record.notes = updated_notes['notes']
         db.session.commit()
 
@@ -98,7 +95,7 @@ class UserDAO(object):
     def update(self, id, updated_user):
         old_record = self.get_a_user(id)
         if not old_record:
-            api.abort(404)
+            api.abort(404, description = "Could not update current user")
         if updated_user['name'] is not None:
             old_record.name = updated_user['name']
         if updated_user['notified'] is not None:
@@ -111,7 +108,7 @@ class UserDAO(object):
     def delete(self, id):
         deleted_user = self.get_a_user(id)
         if not deleted_user:
-            api.abort(404)
+            api.abort(404, description = "User could not be deleted")
         db.session.delete(deleted_user)
         db.session.commit()
 
@@ -119,8 +116,7 @@ class UserDAO(object):
     def delete_notes(self, id):
         a_user = self.get_a_user(id)
         if not a_user:
-            api.abort(404)
-        a_user.comments = ""
+            api.abort(404, description = "Users notes could not be deleted")
         db.session.commit()
 
 DAO = UserDAO()
@@ -154,25 +150,25 @@ class UserOperations(Resource):
         '''Return a certain user by id'''
         user = DAO.get_a_user(id)
         if not user:
-            api.abort(404)
+            api.abort(404, description = "could not get that specific user")
         else:
             return user, 200
 
-    @api.response(200, 'User successfully updated.')
+    @api.response(200, 'User successfully updated')
     @api.response(404, 'Could not update current user')
     @api.expect(userparser)
     def put(self, id):
         ''' Updates a current user'''
         a_updated_user = userparser.parse_args()
         DAO.update(id, a_updated_user)
-        return 'sucess', 200
+        return 'User successfully updated', 200
 
-    @api.response(200, 'User successfully deleted.')
+    @api.response(200, 'User successfully deleted')
     @api.response(404, 'User could not be deleted')
     def delete(self, id):
         '''Deletes a user'''
         DAO.delete(id)
-        return 'sucess', 200
+        return 'User successfully deleted', 200
 
     book_id_parser = reqparse.RequestParser()
     book_id_parser.add_argument('book_id', type=int)
@@ -182,7 +178,7 @@ class UserOperations(Resource):
 
 @api.route('/<int:user_id>/note')
 class UserNoteController(Resource):
-    @api.response(200, 'Users notes successfully created.')
+    @api.response(200, 'Users notes successfully created')
     @api.response(404, 'Users notes could not be created')
     @api.expect(noteparser)
     def post(self, user_id):
@@ -192,20 +188,16 @@ class UserNoteController(Resource):
         notes = data['notes']
         new_note = Notes(id=0,book_id=book_id, user_id=user_id, notes=notes)
         Notes_DAO.store(new_note)
-        return 'sucess', 200
+        return 'Users notes successfully created', 200
 
-    @api.response(200, 'Users notes successfully updated.')
+    @api.response(200, 'Users notes successfully updated')
     @api.response(404, 'Users notes could not be updated')
     @api.expect(updatenoteparser)
     def put(self, user_id):
         '''updates a note by a user with a given required parameters'''
         data = updatenoteparser.parse_args()
         DAO.update_notes(user_id, data)
-        # book_id = data['book_id']
-        # notes = data['notes']
-        # new_note = Notes(id=0,book_id=book_id,user_id=user_id,notes= notes)
-        # Notes_DAO.store(new_note)
-        return 'sucess', 200
+        return 'Users notes successfully updated', 200
 
 
     @api.response(200, 'Notes successfully deleted')
@@ -216,7 +208,7 @@ class UserNoteController(Resource):
         data = deletenoteparser.parse_args()
         note_id = data['note_id']
         Notes_DAO.delete_by_user(user_id,note_id)
-        return 'sucess', 200
+        return 'Notes successfully deleted', 200
 
 
 @api.route('/<int:user_id>/NoteCollection')
@@ -229,5 +221,6 @@ class NoteCollectionController(Resource):
         '''
         notes = Notes_DAO.get_notes_by_user(user_id)
         new_format_notes = DAO.to_dic_note(notes)
+        if not new_format_notes:
+            api.abort(404, description='Could not get a list of notes about the book')
         return new_format_notes, 202
-        # return NotesDAO.get_notes_by_user(Notes_DAO,user_id), 202

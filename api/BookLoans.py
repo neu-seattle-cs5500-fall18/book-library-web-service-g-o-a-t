@@ -69,7 +69,6 @@ class loan_DAO(object):
 
     def retrieve_all_loans(self):
         all_loans = loans.query.all()
-        # return self.to_dic(all_loans)
         return all_loans
 
     def store(self, loan):
@@ -96,7 +95,6 @@ class loan_DAO(object):
 
     def update(self, loan_id, updated_loan):
         old_record = self.retrieveOne(loan_id)
-        # old_record.loan_id = updated_loan['loan_id']
         if updated_loan['book_id'] is not None:
             old_record.book_id = updated_loan['book_id']
         if updated_loan['loaner_id'] is not None:
@@ -203,7 +201,7 @@ class Book_Loan_Controller_Loan_ID(Resource):
         """Retrieves a single loan from a loan id"""
         single_loan = DAO.retrieveOne(loan_id)
         if not single_loan:
-            abort(404, 'Invalid Loan ID')
+            abort(404, description = 'Unable to retrieve book loan')
         else:
             return single_loan, 200
 
@@ -222,7 +220,7 @@ class Book_Loan_Controller_Loan_ID(Resource):
         """Deletes a Book Loan"""
         loan_to_delete = DAO.retrieveOne(loan_id)
         if not loan_to_delete:
-            abort(404, 'Invalid Loan ID')
+            abort(404, description = "Unable to delete Book Loan")
 
         DAO.delete(loan_id)
         return "Book Loan " + str(loan_id) + " has been deleted", 200
@@ -240,15 +238,15 @@ class CheckoutBook(Resource):
         '''
         data = parser.parse_args()
         DAO_checkout.checkout_a_book(data['user_id'], data['book_id'])
-        return 'sucess', 202
+        return 'checkout Accepted', 202
 @api.route('/return/<int:loan_id>')
 class ReturnBook(Resource):
-    @api.response(200, 'return process success.')
-    @api.response(404, 'return process fail')
+    @api.response(200, 'return succeed')
+    @api.response(404, 'return failed')
     @api.expect(parser)
     def put(self, loan_id):
         ''' Return book'''
         a_updated_loan = parser.parse_args()
         DAO_checkout.return_a_book(a_updated_loan['user_id'], a_updated_loan['book_id'], loan_id)
-        return 'sucess', 200
+        return 'return succeed', 200
 

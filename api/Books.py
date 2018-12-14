@@ -93,7 +93,7 @@ class BookDAO(object):
     def update(self, book_id, updated_book):
         old_book = self.get_a_book(book_id)
         if not old_book:
-            api.abort(404)
+            api.abort(404, description = "could not update book")
         if updated_book['title'] is not None:
             old_book.title = updated_book['title']
         if updated_book['author'] is not None:
@@ -109,7 +109,7 @@ class BookDAO(object):
     def delete(self, book_id):
         deleted_book = self.get_a_book(book_id)
         if not deleted_book:
-            api.abort(404)
+            api.abort(404, description = "could not delete a book")
         db.session.delete(deleted_book)
         db.session.commit()
 
@@ -142,9 +142,7 @@ class BooksCollection(Resource):
         '''
         return DAO.get_all_books(), 202
 
-        # return None
-
-    @api.response(202, 'Accepted')
+    @api.response(202, 'book successfully created')
     @api.response(404, 'Could not create a new book')
     @api.expect(parser)
     def post(self):
@@ -154,7 +152,7 @@ class BooksCollection(Resource):
         data = parser.parse_args()
         new_book= Book(title=data['title'],author= data['author'],id= 0,genre= data['genre'],year_released=data['year_released'],checked_out=data['checked_out'])
         DAO.store(new_book)
-        return 'sucess', 202
+        return 'book successfully created', 202
 
 
 
@@ -170,11 +168,9 @@ class BookOperation(Resource):
         '''
         Returns a specific book.
         '''
-        '''input_book_id = parser.parse_args()
-        book = DAO.get_a_book(input_book_id)'''
         book = DAO.get_a_book(id)
         if not book:
-            api.abort(404)
+            api.abort(404, description = 'Could not get specific book')
         else:
             return book
 
@@ -188,9 +184,9 @@ class BookOperation(Resource):
         data = parser.parse_args()
         updated_book = data
         DAO.update(id, updated_book)
-        return 'success', 200
+        return 'Book successfully updated', 202
 
-    @api.response(404, "could not delete book")
+    @api.response(404, "could not delete a book")
     @api.response(200, 'Book has been deleted')
     def delete(self, id):
         '''
@@ -199,6 +195,8 @@ class BookOperation(Resource):
         DAO.delete(id)
         return 'Book deleted successfully', 200
 
+@api.response(404, "could not find a book")
+@api.response(202, 'Book has been found')
 @api.route('/AdvancedSearch')
 class SearchController(Resource):
     @api.expect(parser)
