@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_restplus import Namespace, Resource, fields, reqparse, inputs
-from api.SharedModel import db
-from .Notes import Notes, NotesDAO
+from .SharedModel import db
+from .Notes import Notes, NotesDAO, NotesDbModel
 
 userparser = reqparse.RequestParser()
 userparser.add_argument('name', type=str)
@@ -14,9 +14,14 @@ noteparser = reqparse.RequestParser()
 noteparser.add_argument('book_id', type=int)
 noteparser.add_argument('notes', type=str)
 
+updatenoteparser = reqparse.RequestParser()
+updatenoteparser.add_argument('note_id', type=int, required = True)
+updatenoteparser.add_argument('book_id', type=int, required = True)
+updatenoteparser.add_argument('notes', type=str)
+
 deletenoteparser = reqparse.RequestParser()
-deletenoteparser.add_argument('note_id', type=str)
-Notes_DAO = NotesDAO()
+deletenoteparser.add_argument('note_id', type=int, required = True)
+# Notes_DAO = NotesDAO()
 
 api = Namespace('Users', description='Operations related to users')
 
@@ -57,6 +62,12 @@ class UserDAO(object):
             my_list.append({"id": i.id, "name": i.name, "notified": i.notified, "email": i.email})
         return my_list
 
+    def to_dic_note(self, notes):
+        my_list = []
+        for note in notes:
+            my_list.append({"book_id":note['book_id'], "notes":note['notes']})
+        return my_list
+
     def get_all_users(self):
         all_record = Users.query.all()
         return self.to_dic(all_record)
@@ -75,9 +86,12 @@ class UserDAO(object):
         a_user = Users.query.filter_by(id=user_id).first()
         return a_user
 
-    def update_notes(self, id, updated_notes):
-        old_record = self.get_a_user(id)
-        old_record.comments = updated_notes['commments']
+    def update_notes(self, user_id, updated_notes):
+        old_record = NotesDbModel.query.filter_by(id=updated_notes['note_id'], user_id=user_id, book_id=updated_notes['book_id']).first()
+        if not old_record:
+            api.abort(404)
+        # old_record = self.get_a_user(id)
+        old_record.notes = updated_notes['notes']
         db.session.commit()
 
 
@@ -166,10 +180,6 @@ class UserOperations(Resource):
 
 
 
-
-
-
-
 @api.route('/<int:user_id>/note')
 class UserNoteController(Resource):
     @api.response(200, 'Users notes successfully created.')
@@ -186,14 +196,15 @@ class UserNoteController(Resource):
 
     @api.response(200, 'Users notes successfully updated.')
     @api.response(404, 'Users notes could not be updated')
-    @api.expect(noteparser)
+    @api.expect(updatenoteparser)
     def put(self, user_id):
-        '''updates a note by a user with a given book id'''
-        data = noteparser.parse_args()
-        book_id = data['book_id']
-        notes = data['notes']
-        new_note = Notes(id=0,book_id=book_id,user_id=user_id,notes= notes)
-        Notes_DAO.store(new_note)
+        '''updates a note by a user with a given required parameters'''
+        data = updatenoteparser.parse_args()
+        DAO.update_notes(user_id, data)
+        # book_id = data['book_id']
+        # notes = data['notes']
+        # new_note = Notes(id=0,book_id=book_id,user_id=user_id,notes= notes)
+        # Notes_DAO.store(new_note)
         return 'sucess', 200
 
 
@@ -202,7 +213,7 @@ class UserNoteController(Resource):
     @api.expect(deletenoteparser)
     def delete(self, user_id):
         '''deletes a users note with a given note id'''
-        data = parser.parse_args()
+        data = deletenoteparser.parse_args()
         note_id = data['note_id']
         Notes_DAO.delete_by_user(user_id,note_id)
         return 'sucess', 200
@@ -216,4 +227,7 @@ class NoteCollectionController(Resource):
         '''
         Returns list of notes by a specific user.
         '''
-        return NotesDAO.get_notes_by_user(Notes_DAO,user_id), 202
+        notes = Notes_DAO.get_notes_by_user(user_id)
+        new_format_notes = DAO.to_dic_note(notes)
+        return new_format_notes, 202
+        # return NotesDAO.get_notes_by_user(Notes_DAO,user_id), 202
