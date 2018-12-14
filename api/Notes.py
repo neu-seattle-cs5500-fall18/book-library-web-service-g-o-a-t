@@ -39,6 +39,7 @@ class NotesDAO(object):
             my_list.append({"id": notes.id, "book_id": notes.book_id, "user_id": notes.user_id, "notes": notes.notes})
         return my_list
 
+
     def get_all_notes(self):
         all_notes = NotesDbModel.query.all()
         return self.to_dic(all_notes)
@@ -96,7 +97,7 @@ class NotesDAO(object):
             api.abort(404, description= "that note id doesn't exist")
         if deleted_note.user_id == user_id:
             db.session.delete(deleted_note)
-            db.session.commit(0)
+            db.session.commit()
         else:
             api.abort(404, description= "could not delete a note from that specific user")
 
