@@ -100,9 +100,9 @@ class BookDAO(object):
             old_book.author = updated_book['author']
         if updated_book['genre'] is not None:
             old_book.genre = updated_book['genre']
-        if updated_book['year_released']:
+        if updated_book['year_released'] is not None:
             old_book.year_released = updated_book['year_released']
-        if updated_book['checked_out']:
+        if updated_book['checked_out'] is not None:
             old_book.checked_out = updated_book['checked_out']
         db.session.commit()
 
