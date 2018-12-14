@@ -66,6 +66,12 @@ class BookDAO(object):
             my_list.append({"title": book.title, "author": book.author, "id": book.id, "genre": book.genre, "year_released": book.year_released, "checked_out": book.checked_out})
         return my_list
 
+    def to_dic_note(self, notes):
+        my_list = []
+        for note in notes:
+            my_list.append({"user_id":note['user_id'], "notes":note['notes']})
+        return my_list
+
     def get_all_books(self):
         all_books = BookDbModel.query.all()
         return self.to_dic(all_books)
@@ -226,12 +232,14 @@ class SearchController(Resource):
 
 Notes_DAO = NotesDAO()
 
-@api.route('/book/<int:id>/notes')
+@api.route('/book/<int:book_id>/notes')
 @api.response(202, 'Accepted')
 @api.response(404, 'Could not get a list of notes about the book')
 class NoteCollectionController(Resource):
-    def get(self, id):
+    def get(self, book_id):
         '''
         Returns list of notes for a book.
         '''
-        return NotesDAO.get_notes_by_book(Notes_DAO,id), 202
+        notes = Notes_DAO.get_notes_by_book(book_id)
+        new_format_notes = DAO.to_dic_note(notes)
+        return new_format_notes, 202
